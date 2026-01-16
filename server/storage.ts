@@ -1,38 +1,79 @@
-import { type User, type InsertUser } from "@shared/schema";
-import { randomUUID } from "crypto";
-
-// modify the interface with any CRUD methods
-// you might need
+import { db } from "./db";
+import {
+  categories,
+  products,
+  offers,
+  type Category,
+  type Product,
+  type Offer,
+} from "@shared/schema";
+import { eq } from "drizzle-orm";
 
 export interface IStorage {
-  getUser(id: string): Promise<User | undefined>;
-  getUserByUsername(username: string): Promise<User | undefined>;
-  createUser(user: InsertUser): Promise<User>;
+  getCategories(): Promise<Category[]>;
+  getCategory(id: number): Promise<Category | undefined>;
+  getProducts(categoryId?: number, isPopular?: boolean): Promise<Product[]>;
+  getProduct(id: number): Promise<Product | undefined>;
+  getOffers(): Promise<Offer[]>;
+  
+  // Seeding methods
+  seedCategories(data: any[]): Promise<void>;
+  seedProducts(data: any[]): Promise<void>;
+  seedOffers(data: any[]): Promise<void>;
 }
 
-export class MemStorage implements IStorage {
-  private users: Map<string, User>;
-
-  constructor() {
-    this.users = new Map();
+export class DatabaseStorage implements IStorage {
+  async getCategories(): Promise<Category[]> {
+    return await db.select().from(categories);
   }
 
-  async getUser(id: string): Promise<User | undefined> {
-    return this.users.get(id);
+  async getCategory(id: number): Promise<Category | undefined> {
+    const [category] = await db.select().from(categories).where(eq(categories.id, id));
+    return category;
   }
 
-  async getUserByUsername(username: string): Promise<User | undefined> {
-    return Array.from(this.users.values()).find(
-      (user) => user.username === username,
-    );
+  async getProducts(categoryId?: number, isPopular?: boolean): Promise<Product[]> {
+    let query = db.select().from(products);
+    
+    if (categoryId) {
+      // @ts-ignore - complex query building type issue
+      query = query.where(eq(products.categoryId, categoryId));
+    }
+    
+    if (isPopular) {
+      // @ts-ignore
+      query = query.where(eq(products.isPopular, true));
+    }
+    
+    return await query;
   }
 
-  async createUser(insertUser: InsertUser): Promise<User> {
-    const id = randomUUID();
-    const user: User = { ...insertUser, id };
-    this.users.set(id, user);
-    return user;
+  async getProduct(id: number): Promise<Product | undefined> {
+    const [product] = await db.select().from(products).where(eq(products.id, id));
+    return product;
+  }
+
+  async getOffers(): Promise<Offer[]> {
+    return await db.select().from(offers);
+  }
+
+  async seedCategories(data: any[]): Promise<void> {
+    if ((await this.getCategories()).length === 0) {
+      await db.insert(categories).values(data);
+    }
+  }
+
+  async seedProducts(data: any[]): Promise<void> {
+    if ((await this.getProducts()).length === 0) {
+      await db.insert(products).values(data);
+    }
+  }
+
+  async seedOffers(data: any[]): Promise<void> {
+    if ((await this.getOffers()).length === 0) {
+      await db.insert(offers).values(data);
+    }
   }
 }
 
-export const storage = new MemStorage();
+export const storage = new DatabaseStorage();
