@@ -2,10 +2,8 @@ import { db } from "./db";
 import {
   categories,
   products,
-  offers,
   type Category,
   type Product,
-  type Offer,
 } from "@shared/schema";
 import { eq } from "drizzle-orm";
 
@@ -14,17 +12,17 @@ export interface IStorage {
   getCategory(id: number): Promise<Category | undefined>;
   getProducts(categoryId?: number, isPopular?: boolean): Promise<Product[]>;
   getProduct(id: number): Promise<Product | undefined>;
-  getOffers(): Promise<Offer[]>;
   
   // Create methods
   createProduct(data: Omit<Product, 'id'>): Promise<Product>;
   createCategory(data: Omit<Category, 'id'>): Promise<Category>;
-  createOffer(data: Omit<Offer, 'id'>): Promise<Offer>;
+  
+  // Update methods
+  updateProductPrice(id: number, price: number, unitType?: string): Promise<Product | undefined>;
   
   // Seeding methods
   seedCategories(data: any[]): Promise<void>;
   seedProducts(data: any[]): Promise<void>;
-  seedOffers(data: any[]): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -58,10 +56,6 @@ export class DatabaseStorage implements IStorage {
     return product;
   }
 
-  async getOffers(): Promise<Offer[]> {
-    return await db.select().from(offers);
-  }
-
   async createProduct(data: Omit<Product, 'id'>): Promise<Product> {
     const [product] = await db.insert(products).values(data).returning();
     return product;
@@ -72,9 +66,13 @@ export class DatabaseStorage implements IStorage {
     return category;
   }
 
-  async createOffer(data: Omit<Offer, 'id'>): Promise<Offer> {
-    const [offer] = await db.insert(offers).values(data).returning();
-    return offer;
+  async updateProductPrice(id: number, price: number, unitType?: string): Promise<Product | undefined> {
+    const updateData: { price: number; unitType?: string } = { price };
+    if (unitType) {
+      updateData.unitType = unitType;
+    }
+    const [product] = await db.update(products).set(updateData).where(eq(products.id, id)).returning();
+    return product;
   }
 
   async seedCategories(data: any[]): Promise<void> {
@@ -86,12 +84,6 @@ export class DatabaseStorage implements IStorage {
   async seedProducts(data: any[]): Promise<void> {
     if ((await this.getProducts()).length === 0) {
       await db.insert(products).values(data);
-    }
-  }
-
-  async seedOffers(data: any[]): Promise<void> {
-    if ((await this.getOffers()).length === 0) {
-      await db.insert(offers).values(data);
     }
   }
 }

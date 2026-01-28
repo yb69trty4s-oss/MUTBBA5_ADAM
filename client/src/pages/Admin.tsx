@@ -10,7 +10,8 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import type { Category, Product } from "@shared/schema";
-import { Plus, X, Upload, Loader2 } from "lucide-react";
+import { unitTypes } from "@shared/schema";
+import { Plus, X, Upload, Loader2, Pencil, Check } from "lucide-react";
 
 export default function Admin() {
   const [, setLocation] = useLocation();
@@ -19,6 +20,9 @@ export default function Admin() {
   const [imageUrl, setImageUrl] = useState("");
   const [uploading, setUploading] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [editingProductId, setEditingProductId] = useState<number | null>(null);
+  const [editPrice, setEditPrice] = useState("");
+  const [editUnitType, setEditUnitType] = useState("");
 
   const { data: categories = [] } = useQuery<Category[]>({
     queryKey: ["/api/categories"],
@@ -33,6 +37,7 @@ export default function Admin() {
       name: string;
       description: string;
       price: number;
+      unitType: string;
       categoryId: number;
       image: string;
       isPopular: boolean;
@@ -44,10 +49,26 @@ export default function Admin() {
       setShowAddProduct(false);
       setImageUrl("");
       setSelectedFile(null);
-      toast({ title: "Product added" });
+      toast({ title: "تمت إضافة المنتج" });
     },
     onError: () => {
-      toast({ title: "Failed to add product", variant: "destructive" });
+      toast({ title: "فشل في إضافة المنتج", variant: "destructive" });
+    },
+  });
+
+  const updateProductPrice = useMutation({
+    mutationFn: async ({ id, price, unitType }: { id: number; price: number; unitType: string }) => {
+      return apiRequest("PATCH", `/api/products/${id}/price`, { price, unitType });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/products"] });
+      setEditingProductId(null);
+      setEditPrice("");
+      setEditUnitType("");
+      toast({ title: "تم تحديث السعر" });
+    },
+    onError: () => {
+      toast({ title: "فشل في تحديث السعر", variant: "destructive" });
     },
   });
 
@@ -94,7 +115,7 @@ export default function Admin() {
       const result = await uploadRes.json();
       return result.url;
     } catch (error) {
-      toast({ title: "Image upload failed", variant: "destructive" });
+      toast({ title: "فشل رفع الصورة", variant: "destructive" });
       return null;
     } finally {
       setUploading(false);
@@ -107,7 +128,8 @@ export default function Admin() {
     
     const name = formData.get("name") as string;
     const description = formData.get("description") as string;
-    const price = parseInt(formData.get("price") as string) * 100;
+    const price = parseFloat(formData.get("price") as string) * 100;
+    const unitType = formData.get("unitType") as string;
     const categoryId = parseInt(formData.get("categoryId") as string);
     const isPopular = formData.get("isPopular") === "true";
     
@@ -133,46 +155,60 @@ export default function Admin() {
       name,
       description,
       price,
+      unitType,
       categoryId,
       image: finalImageUrl,
       isPopular,
     });
   };
 
+  const startEditing = (product: Product) => {
+    setEditingProductId(product.id);
+    setEditPrice((product.price / 100).toString());
+    setEditUnitType(product.unitType || "حبة");
+  };
+
+  const savePrice = () => {
+    if (editingProductId !== null && editPrice) {
+      const price = parseFloat(editPrice) * 100;
+      updateProductPrice.mutate({ id: editingProductId, price, unitType: editUnitType });
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-background p-6">
+    <div className="min-h-screen bg-background p-6" dir="rtl">
       <div className="max-w-6xl mx-auto">
         <div className="flex items-center justify-between gap-4 mb-8">
           <h1 className="text-3xl font-bold" data-testid="text-admin-title">
-            Admin
+            لوحة التحكم
           </h1>
           <Button
             variant="outline"
             onClick={() => setLocation("/")}
             data-testid="button-back-home"
           >
-            Back
+            رجوع
           </Button>
         </div>
 
         <div className="space-y-6">
           <Card data-testid="card-products">
             <CardHeader className="flex flex-row items-center justify-between gap-4">
-              <CardTitle>Products ({products.length})</CardTitle>
+              <CardTitle>المنتجات ({products.length})</CardTitle>
               <Button
                 size="sm"
                 onClick={() => setShowAddProduct(true)}
                 data-testid="button-add-product"
               >
-                <Plus className="h-4 w-4 mr-1" />
-                Add
+                <Plus className="h-4 w-4 ml-1" />
+                إضافة
               </Button>
             </CardHeader>
             <CardContent>
               {showAddProduct && (
                 <form onSubmit={handleSubmit} className="border rounded-md p-4 mb-4 space-y-4">
                   <div className="flex justify-between items-center">
-                    <h3 className="font-medium">New Product</h3>
+                    <h3 className="font-medium">منتج جديد</h3>
                     <Button
                       type="button"
                       size="icon"
@@ -189,7 +225,7 @@ export default function Admin() {
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="name">Name</Label>
+                      <Label htmlFor="name">الاسم</Label>
                       <Input
                         id="name"
                         name="name"
@@ -199,21 +235,39 @@ export default function Admin() {
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="price">Price</Label>
+                      <Label htmlFor="price">السعر</Label>
                       <Input
                         id="price"
                         name="price"
                         type="number"
+                        step="0.01"
                         required
+                        placeholder="مثال: 2.5"
                         data-testid="input-product-price"
                       />
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="categoryId">Category</Label>
+                      <Label htmlFor="unitType">الوحدة</Label>
+                      <Select name="unitType" defaultValue="حبة">
+                        <SelectTrigger data-testid="select-unit-type">
+                          <SelectValue placeholder="اختر الوحدة" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {unitTypes.map((unit) => (
+                            <SelectItem key={unit} value={unit}>
+                              {unit}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="categoryId">التصنيف</Label>
                       <Select name="categoryId" required>
                         <SelectTrigger data-testid="select-category">
-                          <SelectValue placeholder="Select category" />
+                          <SelectValue placeholder="اختر التصنيف" />
                         </SelectTrigger>
                         <SelectContent>
                           {categories.map((cat) => (
@@ -226,21 +280,21 @@ export default function Admin() {
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="isPopular">Popular</Label>
+                      <Label htmlFor="isPopular">مشهور</Label>
                       <Select name="isPopular" defaultValue="false">
                         <SelectTrigger data-testid="select-popular">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="false">No</SelectItem>
-                          <SelectItem value="true">Yes</SelectItem>
+                          <SelectItem value="false">لا</SelectItem>
+                          <SelectItem value="true">نعم</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="description">Description</Label>
+                    <Label htmlFor="description">الوصف</Label>
                     <Textarea
                       id="description"
                       name="description"
@@ -250,7 +304,7 @@ export default function Admin() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label>Image</Label>
+                    <Label>الصورة</Label>
                     <div className="flex items-center gap-4">
                       <Input
                         type="file"
@@ -283,11 +337,11 @@ export default function Admin() {
                     data-testid="button-save-product"
                   >
                     {uploading || createProduct.isPending ? (
-                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                      <Loader2 className="h-4 w-4 animate-spin ml-2" />
                     ) : (
-                      <Upload className="h-4 w-4 mr-2" />
+                      <Upload className="h-4 w-4 ml-2" />
                     )}
-                    {uploading ? "Uploading..." : "Save Product"}
+                    {uploading ? "جاري الرفع..." : "حفظ المنتج"}
                   </Button>
                 </form>
               )}
@@ -302,13 +356,79 @@ export default function Admin() {
                     <img
                       src={product.image}
                       alt={product.name}
-                      className="h-16 w-16 object-cover rounded-md"
+                      className="h-16 w-16 object-cover rounded-md flex-shrink-0"
                     />
                     <div className="flex-1 min-w-0">
                       <p className="font-medium truncate">{product.name}</p>
-                      <p className="text-sm text-muted-foreground">
-                        {(product.price / 100).toFixed(2)}
-                      </p>
+                      
+                      {editingProductId === product.id ? (
+                        <div className="mt-2 space-y-2">
+                          <div className="flex gap-2 items-center">
+                            <Input
+                              type="number"
+                              step="0.01"
+                              value={editPrice}
+                              onChange={(e) => setEditPrice(e.target.value)}
+                              className="h-8 w-24"
+                              placeholder="السعر"
+                              data-testid={`input-edit-price-${product.id}`}
+                            />
+                            <Select value={editUnitType} onValueChange={setEditUnitType}>
+                              <SelectTrigger className="h-8 w-20" data-testid={`select-edit-unit-${product.id}`}>
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {unitTypes.map((unit) => (
+                                  <SelectItem key={unit} value={unit}>
+                                    {unit}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div className="flex gap-1">
+                            <Button
+                              size="sm"
+                              onClick={savePrice}
+                              disabled={updateProductPrice.isPending}
+                              data-testid={`button-save-price-${product.id}`}
+                            >
+                              {updateProductPrice.isPending ? (
+                                <Loader2 className="h-3 w-3 animate-spin" />
+                              ) : (
+                                <Check className="h-3 w-3" />
+                              )}
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => {
+                                setEditingProductId(null);
+                                setEditPrice("");
+                                setEditUnitType("");
+                              }}
+                              data-testid={`button-cancel-edit-${product.id}`}
+                            >
+                              <X className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="flex items-center justify-between mt-1">
+                          <p className="text-sm text-muted-foreground">
+                            {(product.price / 100).toFixed(2)} د.أ / {product.unitType || "حبة"}
+                          </p>
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            className="h-6 w-6"
+                            onClick={() => startEditing(product)}
+                            data-testid={`button-edit-price-${product.id}`}
+                          >
+                            <Pencil className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      )}
                     </div>
                   </div>
                 ))}

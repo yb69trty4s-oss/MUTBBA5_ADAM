@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { api, buildUrl } from "@shared/routes";
-import { type Category, type Product, type Offer } from "@shared/schema";
+import { type Category, type Product } from "@shared/schema";
 
 // Categories
 export function useCategories() {
@@ -56,17 +56,5 @@ export function useProduct(id: number) {
       return api.products.get.responses[200].parse(await res.json());
     },
     enabled: !!id,
-  });
-}
-
-// Offers
-export function useOffers() {
-  return useQuery({
-    queryKey: [api.offers.list.path],
-    queryFn: async () => {
-      const res = await fetch(api.offers.list.path);
-      if (!res.ok) throw new Error("Failed to fetch offers");
-      return api.offers.list.responses[200].parse(await res.json());
-    },
   });
 }

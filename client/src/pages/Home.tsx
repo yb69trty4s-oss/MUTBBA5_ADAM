@@ -1,21 +1,18 @@
 import { useEffect, useState } from "react";
 import { Link } from "wouter";
 import { motion } from "framer-motion";
-import { useCategories, useOffers, useProducts } from "@/hooks/use-shop-data";
+import { useCategories, useProducts } from "@/hooks/use-shop-data";
 import { Navigation } from "@/components/Navigation";
 import { Footer } from "@/components/Footer";
 import { ProductCard } from "@/components/ProductCard";
-import { OfferCard } from "@/components/OfferCard";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, ChevronDown, Utensils } from "lucide-react";
+import { ChevronDown, Utensils } from "lucide-react";
 
 export default function Home() {
   const [heroImage, setHeroImage] = useState<string>("");
   const { data: categories, isLoading: isCatLoading } = useCategories();
   const { data: featuredProducts, isLoading: isProdLoading } = useProducts({ isPopular: true });
-  const { data: offers, isLoading: isOffersLoading } = useOffers();
 
-  // Random hero image logic
   useEffect(() => {
     const images = ["/images/hero1.png", "/images/hero2.png"];
     const random = images[Math.floor(Math.random() * images.length)];
@@ -26,7 +23,6 @@ export default function Home() {
     <div className="min-h-screen bg-background" dir="rtl">
       <Navigation />
 
-      {/* Hero Section */}
       <header className="relative h-screen w-full overflow-hidden flex items-center justify-center">
         {heroImage && (
           <motion.div
@@ -74,7 +70,6 @@ export default function Home() {
         </motion.div>
       </header>
 
-      {/* Categories Section */}
       <section className="py-24 bg-background relative overflow-hidden">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
@@ -118,38 +113,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Offers Section */}
       <section className="py-24 bg-muted/50">
-        <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between mb-12">
-            <h2 className="text-3xl md:text-5xl font-display font-bold text-foreground">
-              عروض خاصة
-            </h2>
-            <Link href="/offers">
-              <Button variant="ghost" className="gap-2 text-primary hover:text-primary/80">
-                عرض الكل <ArrowLeft className="w-4 h-4 rtl-flip" />
-              </Button>
-            </Link>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {isOffersLoading ? (
-              <div className="col-span-full py-20 text-center text-muted-foreground">جاري تحميل العروض...</div>
-            ) : offers?.length ? (
-              offers.slice(0, 2).map((offer, idx) => (
-                <OfferCard key={offer.id} offer={offer} index={idx} />
-              ))
-            ) : (
-              <div className="col-span-full py-12 text-center bg-card rounded-2xl border border-dashed border-border">
-                <p className="text-muted-foreground">لا توجد عروض حالياً، تفقد القائمة الرئيسية!</p>
-              </div>
-            )}
-          </div>
-        </div>
-      </section>
-
-      {/* Featured Products */}
-      <section className="py-24 bg-background">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-5xl font-display font-bold text-foreground mb-4">

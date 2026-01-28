@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { insertCategorySchema, insertProductSchema, insertOfferSchema, categories, products, offers } from './schema';
+import { insertCategorySchema, insertProductSchema, categories, products } from './schema';
 
 export const errorSchemas = {
   notFound: z.object({ message: z.string() }),
@@ -42,15 +42,6 @@ export const api = {
       responses: {
         200: z.custom<typeof products.$inferSelect>(),
         404: errorSchemas.notFound,
-      },
-    },
-  },
-  offers: {
-    list: {
-      method: 'GET' as const,
-      path: '/api/offers',
-      responses: {
-        200: z.array(z.custom<typeof offers.$inferSelect>()),
       },
     },
   },

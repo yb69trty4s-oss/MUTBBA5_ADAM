@@ -1,13 +1,12 @@
 import { Link, useLocation } from "wouter";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, ShoppingBag } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const links = [
   { href: "/", label: "الرئيسية" },
   { href: "/menu", label: "القائمة" },
-  { href: "/offers", label: "العروض" },
 ];
 
 export function Navigation() {
@@ -29,7 +28,6 @@ export function Navigation() {
     >
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 sm:h-20">
-          {/* Logo */}
           <Link href="/">
             <div className="flex items-center gap-2 cursor-pointer group">
               <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center text-primary-foreground shadow-lg group-hover:scale-105 transition-transform duration-300">
@@ -41,7 +39,6 @@ export function Navigation() {
             </div>
           </Link>
 
-          {/* Desktop Links */}
           <div className="hidden md:flex items-center gap-8">
             {links.map((link) => (
               <Link key={link.href} href={link.href}>
@@ -72,7 +69,6 @@ export function Navigation() {
             </Link>
           </div>
 
-          {/* Mobile Menu Button */}
           <div className="md:hidden">
             <button
               onClick={() => setIsOpen(!isOpen)}
@@ -84,7 +80,6 @@ export function Navigation() {
         </div>
       </div>
 
-      {/* Mobile Menu Overlay */}
       <AnimatePresence>
         {isOpen && (
           <motion.div

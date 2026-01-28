@@ -42,7 +42,7 @@ export function ProductCard({ product }: ProductCardProps) {
         
         <div className="flex items-center justify-between mt-auto">
           <div className="flex flex-col">
-            <span className="text-xs text-muted-foreground">السعر</span>
+            <span className="text-xs text-muted-foreground">السعر / {product.unitType || "حبة"}</span>
             <span className="text-lg font-bold text-primary">
               {(product.price / 100).toFixed(2)} د.أ
             </span>

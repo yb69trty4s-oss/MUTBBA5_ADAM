@@ -9,7 +9,6 @@ import { SecretAdminButton } from "@/components/SecretAdminButton";
 // Pages
 import Home from "@/pages/Home";
 import Menu from "@/pages/Menu";
-import Offers from "@/pages/Offers";
 import Contact from "@/pages/Contact";
 import Admin from "@/pages/Admin";
 
@@ -18,10 +17,8 @@ function Router() {
     <Switch>
       <Route path="/" component={Home} />
       <Route path="/menu" component={Menu} />
-      <Route path="/offers" component={Offers} />
       <Route path="/contact" component={Contact} />
       <Route path="/admin" component={Admin} />
-      {/* Fallback to 404 */}
       <Route component={NotFound} />
     </Switch>
   );

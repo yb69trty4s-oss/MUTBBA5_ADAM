@@ -3,7 +3,7 @@ import type { Server } from "http";
 import { storage } from "./storage";
 import { api } from "@shared/routes";
 import { z } from "zod";
-import { insertProductSchema, insertCategorySchema, insertOfferSchema } from "@shared/schema";
+import { insertProductSchema, insertCategorySchema, updateProductPriceSchema } from "@shared/schema";
 import ImageKit from "imagekit";
 
 export async function registerRoutes(
@@ -26,7 +26,6 @@ export async function registerRoutes(
   });
 
   app.get(api.products.list.path, async (req, res) => {
-    // Manually parse query params since Express doesn't auto-coerce types exactly like Zod wants sometimes
     const categoryId = req.query.categoryId ? Number(req.query.categoryId) : undefined;
     const isPopular = req.query.isPopular === 'true';
     
@@ -40,11 +39,6 @@ export async function registerRoutes(
       return res.status(404).json({ message: 'Product not found' });
     }
     res.json(product);
-  });
-
-  app.get(api.offers.list.path, async (_req, res) => {
-    const offers = await storage.getOffers();
-    res.json(offers);
   });
 
   // === Create Routes ===
@@ -68,13 +62,18 @@ export async function registerRoutes(
     }
   });
 
-  app.post("/api/offers", async (req, res) => {
+  // === Update Routes ===
+  app.patch("/api/products/:id/price", async (req, res) => {
     try {
-      const data = insertOfferSchema.parse(req.body);
-      const offer = await storage.createOffer(data);
-      res.status(201).json(offer);
+      const id = Number(req.params.id);
+      const data = updateProductPriceSchema.parse(req.body);
+      const product = await storage.updateProductPrice(id, data.price, data.unitType);
+      if (!product) {
+        return res.status(404).json({ message: "Product not found" });
+      }
+      res.json(product);
     } catch (error) {
-      res.status(400).json({ message: "Invalid offer data" });
+      res.status(400).json({ message: "Invalid update data" });
     }
   });
 
@@ -107,25 +106,23 @@ export async function registerRoutes(
 async function seedDatabase() {
   console.log("Seeding database...");
   
-  // Arabic Data Seeding
   await storage.seedCategories([
     { name: "مقبلات", slug: "appetizers", image: "/images/hero1.png" },
     { name: "أطباق رئيسية", slug: "main-dishes", image: "/images/hero2.png" },
     { name: "حلويات", slug: "desserts", image: "/images/hero1.png" },
   ]);
 
-  // Get categories to link products
   const categories = await storage.getCategories();
   const catMap = new Map(categories.map(c => [c.slug, c.id]));
 
   if (catMap.size > 0) {
     await storage.seedProducts([
-      // Appetizers
       { 
         categoryId: catMap.get("appetizers"), 
         name: "كبة مقلية", 
         description: "كبة محشوة باللحم والصنوبر مقلية ومقرمشة", 
-        price: 500, // 5.00
+        price: 500,
+        unitType: "دزينة",
         image: "/images/hero2.png",
         isPopular: true
       },
@@ -133,7 +130,8 @@ async function seedDatabase() {
         categoryId: catMap.get("appetizers"), 
         name: "سمبوسة", 
         description: "سمبوسة هشة بحشوة الجبن أو اللحم", 
-        price: 300, 
+        price: 300,
+        unitType: "دزينة",
         image: "/images/hero1.png",
         isPopular: true
       },
@@ -141,16 +139,17 @@ async function seedDatabase() {
         categoryId: catMap.get("appetizers"), 
         name: "ورق عنب", 
         description: "ورق عنب بخلطة الأرز والليمون المميزة", 
-        price: 600, 
+        price: 600,
+        unitType: "كيلو",
         image: "/images/hero2.png",
         isPopular: true
       },
-      // Main Dishes
       { 
         categoryId: catMap.get("main-dishes"), 
         name: "كبة مشوية", 
         description: "كبة مشوية على الفحم بنكهة الشواء الأصيلة", 
-        price: 1200, 
+        price: 1200,
+        unitType: "كيلو",
         image: "/images/hero1.png",
         isPopular: true
       },
@@ -158,36 +157,20 @@ async function seedDatabase() {
         categoryId: catMap.get("main-dishes"), 
         name: "منسف أردني", 
         description: "منسف باللحم البلدي والجميد الكركي", 
-        price: 2500, 
+        price: 2500,
+        unitType: "حبة",
         image: "/images/hero2.png",
         isPopular: false
       },
-      // Desserts
       { 
         categoryId: catMap.get("desserts"), 
         name: "كنافة نابلسية", 
         description: "كنافة بالجبنة الساخنة والقطر", 
-        price: 800, 
+        price: 800,
+        unitType: "كيلو",
         image: "/images/hero1.png",
         isPopular: true
       },
-    ]);
-
-    await storage.seedOffers([
-      {
-        title: "عرض العائلة",
-        description: "احصل على كيلو كبة مشوية + نصف كيلو ورق عنب بسعر مميز",
-        originalPrice: 3000,
-        discountedPrice: 2500,
-        image: "/images/hero2.png"
-      },
-      {
-        title: "عرض الجمعة",
-        description: "خصم 20% على جميع المقبلات",
-        originalPrice: 1000,
-        discountedPrice: 800,
-        image: "/images/hero1.png"
-      }
     ]);
   }
   
