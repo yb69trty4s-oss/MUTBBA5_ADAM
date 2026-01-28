@@ -16,6 +16,11 @@ export interface IStorage {
   getProduct(id: number): Promise<Product | undefined>;
   getOffers(): Promise<Offer[]>;
   
+  // Create methods
+  createProduct(data: Omit<Product, 'id'>): Promise<Product>;
+  createCategory(data: Omit<Category, 'id'>): Promise<Category>;
+  createOffer(data: Omit<Offer, 'id'>): Promise<Offer>;
+  
   // Seeding methods
   seedCategories(data: any[]): Promise<void>;
   seedProducts(data: any[]): Promise<void>;
@@ -55,6 +60,21 @@ export class DatabaseStorage implements IStorage {
 
   async getOffers(): Promise<Offer[]> {
     return await db.select().from(offers);
+  }
+
+  async createProduct(data: Omit<Product, 'id'>): Promise<Product> {
+    const [product] = await db.insert(products).values(data).returning();
+    return product;
+  }
+
+  async createCategory(data: Omit<Category, 'id'>): Promise<Category> {
+    const [category] = await db.insert(categories).values(data).returning();
+    return category;
+  }
+
+  async createOffer(data: Omit<Offer, 'id'>): Promise<Offer> {
+    const [offer] = await db.insert(offers).values(data).returning();
+    return offer;
   }
 
   async seedCategories(data: any[]): Promise<void> {

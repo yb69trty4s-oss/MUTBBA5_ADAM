@@ -46,14 +46,14 @@ export function SecretAdminButton() {
       />
 
       <Dialog open={showDialog} onOpenChange={setShowDialog}>
-        <DialogContent>
+        <DialogContent aria-describedby={undefined}>
           <DialogHeader>
-            <DialogTitle>Enter Access Code</DialogTitle>
+            <DialogTitle className="sr-only">Access</DialogTitle>
           </DialogHeader>
           <div className="flex flex-col gap-4">
             <Input
               type="password"
-              placeholder="Enter code"
+              placeholder=""
               value={code}
               onChange={(e) => {
                 setCode(e.target.value);
@@ -62,14 +62,10 @@ export function SecretAdminButton() {
               onKeyDown={handleKeyDown}
               data-testid="input-admin-code"
               className={error ? "border-destructive" : ""}
+              autoFocus
             />
-            {error && (
-              <p className="text-sm text-destructive" data-testid="text-error-message">
-                Invalid code
-              </p>
-            )}
             <Button onClick={handleSubmit} data-testid="button-submit-code">
-              Submit
+              OK
             </Button>
           </div>
         </DialogContent>

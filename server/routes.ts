@@ -3,6 +3,8 @@ import type { Server } from "http";
 import { storage } from "./storage";
 import { api } from "@shared/routes";
 import { z } from "zod";
+import { insertProductSchema, insertCategorySchema, insertOfferSchema } from "@shared/schema";
+import ImageKit from "imagekit";
 
 export async function registerRoutes(
   httpServer: Server,
@@ -43,6 +45,57 @@ export async function registerRoutes(
   app.get(api.offers.list.path, async (_req, res) => {
     const offers = await storage.getOffers();
     res.json(offers);
+  });
+
+  // === Create Routes ===
+  app.post("/api/products", async (req, res) => {
+    try {
+      const data = insertProductSchema.parse(req.body);
+      const product = await storage.createProduct(data);
+      res.status(201).json(product);
+    } catch (error) {
+      res.status(400).json({ message: "Invalid product data" });
+    }
+  });
+
+  app.post("/api/categories", async (req, res) => {
+    try {
+      const data = insertCategorySchema.parse(req.body);
+      const category = await storage.createCategory(data);
+      res.status(201).json(category);
+    } catch (error) {
+      res.status(400).json({ message: "Invalid category data" });
+    }
+  });
+
+  app.post("/api/offers", async (req, res) => {
+    try {
+      const data = insertOfferSchema.parse(req.body);
+      const offer = await storage.createOffer(data);
+      res.status(201).json(offer);
+    } catch (error) {
+      res.status(400).json({ message: "Invalid offer data" });
+    }
+  });
+
+  // === ImageKit Auth ===
+  app.get("/api/imagekit/auth", (_req, res) => {
+    const privateKey = process.env.IMAGEKIT_PRIVATE_KEY;
+    const publicKey = process.env.IMAGEKIT_PUBLIC_KEY;
+    const urlEndpoint = process.env.IMAGEKIT_URL_ENDPOINT;
+
+    if (!privateKey || !publicKey || !urlEndpoint) {
+      return res.status(500).json({ message: "ImageKit not configured" });
+    }
+
+    const imagekit = new ImageKit({
+      publicKey,
+      privateKey,
+      urlEndpoint,
+    });
+
+    const authParams = imagekit.getAuthenticationParameters();
+    res.json(authParams);
   });
 
   // === Seeding ===
