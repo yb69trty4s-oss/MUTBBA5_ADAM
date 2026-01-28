@@ -18,6 +18,7 @@ export default function Admin() {
   const [showAddProduct, setShowAddProduct] = useState(false);
   const [imageUrl, setImageUrl] = useState("");
   const [uploading, setUploading] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   const { data: categories = [] } = useQuery<Category[]>({
     queryKey: ["/api/categories"],
@@ -42,6 +43,7 @@ export default function Admin() {
       queryClient.invalidateQueries({ queryKey: ["/api/products"] });
       setShowAddProduct(false);
       setImageUrl("");
+      setSelectedFile(null);
       toast({ title: "Product added" });
     },
     onError: () => {
@@ -49,7 +51,15 @@ export default function Admin() {
     },
   });
 
-  const handleImageUpload = async (file: File) => {
+  const handleImageUpload = async (
+    file: File,
+    productDetails: {
+      name: string;
+      categoryName: string;
+      price: number;
+      isPopular: boolean;
+    }
+  ): Promise<string | null> => {
     setUploading(true);
     try {
       const authRes = await fetch("/api/imagekit/auth");
@@ -58,9 +68,15 @@ export default function Admin() {
       }
       const authParams = await authRes.json();
 
+      const sanitize = (str: string) =>
+        str.replace(/[^a-zA-Z0-9\u0600-\u06FF]/g, "_").replace(/_+/g, "_");
+
+      const ext = file.name.split(".").pop() || "jpg";
+      const descriptiveFileName = `${sanitize(productDetails.name)}_cat-${sanitize(productDetails.categoryName)}_price-${productDetails.price}_popular-${productDetails.isPopular ? "yes" : "no"}_${Date.now()}.${ext}`;
+
       const formData = new FormData();
       formData.append("file", file);
-      formData.append("fileName", file.name);
+      formData.append("fileName", descriptiveFileName);
       formData.append("publicKey", authParams.publicKey);
       formData.append("signature", authParams.signature);
       formData.append("expire", authParams.expire.toString());
@@ -76,25 +92,50 @@ export default function Admin() {
       }
 
       const result = await uploadRes.json();
-      setImageUrl(result.url);
+      return result.url;
     } catch (error) {
       toast({ title: "Image upload failed", variant: "destructive" });
+      return null;
     } finally {
       setUploading(false);
     }
   };
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
     
+    const name = formData.get("name") as string;
+    const description = formData.get("description") as string;
+    const price = parseInt(formData.get("price") as string) * 100;
+    const categoryId = parseInt(formData.get("categoryId") as string);
+    const isPopular = formData.get("isPopular") === "true";
+    
+    const category = categories.find((c) => c.id === categoryId);
+    const categoryName = category?.name || "unknown";
+
+    let finalImageUrl = imageUrl;
+    
+    if (selectedFile && !imageUrl) {
+      const uploadedUrl = await handleImageUpload(selectedFile, {
+        name,
+        categoryName,
+        price,
+        isPopular,
+      });
+      if (!uploadedUrl) {
+        return;
+      }
+      finalImageUrl = uploadedUrl;
+    }
+    
     createProduct.mutate({
-      name: formData.get("name") as string,
-      description: formData.get("description") as string,
-      price: parseInt(formData.get("price") as string) * 100,
-      categoryId: parseInt(formData.get("categoryId") as string),
-      image: imageUrl,
-      isPopular: formData.get("isPopular") === "true",
+      name,
+      description,
+      price,
+      categoryId,
+      image: finalImageUrl,
+      isPopular,
     });
   };
 
@@ -139,6 +180,7 @@ export default function Admin() {
                       onClick={() => {
                         setShowAddProduct(false);
                         setImageUrl("");
+                        setSelectedFile(null);
                       }}
                     >
                       <X className="h-4 w-4" />
@@ -215,16 +257,19 @@ export default function Admin() {
                         accept="image/*"
                         onChange={(e) => {
                           const file = e.target.files?.[0];
-                          if (file) handleImageUpload(file);
+                          if (file) {
+                            setSelectedFile(file);
+                            setImageUrl("");
+                          }
                         }}
                         data-testid="input-product-image"
                         disabled={uploading}
                       />
                       {uploading && <Loader2 className="h-4 w-4 animate-spin" />}
                     </div>
-                    {imageUrl && (
+                    {selectedFile && (
                       <img
-                        src={imageUrl}
+                        src={URL.createObjectURL(selectedFile)}
                         alt="Preview"
                         className="h-20 w-20 object-cover rounded-md mt-2"
                         data-testid="img-product-preview"
@@ -234,15 +279,15 @@ export default function Admin() {
 
                   <Button
                     type="submit"
-                    disabled={!imageUrl || createProduct.isPending}
+                    disabled={!selectedFile || uploading || createProduct.isPending}
                     data-testid="button-save-product"
                   >
-                    {createProduct.isPending ? (
+                    {uploading || createProduct.isPending ? (
                       <Loader2 className="h-4 w-4 animate-spin mr-2" />
                     ) : (
                       <Upload className="h-4 w-4 mr-2" />
                     )}
-                    Save Product
+                    {uploading ? "Uploading..." : "Save Product"}
                   </Button>
                 </form>
               )}
