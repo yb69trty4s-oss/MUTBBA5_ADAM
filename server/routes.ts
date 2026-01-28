@@ -95,7 +95,7 @@ export async function registerRoutes(
     });
 
     const authParams = imagekit.getAuthenticationParameters();
-    res.json(authParams);
+    res.json({ ...authParams, publicKey });
   });
 
   // === Seeding ===
