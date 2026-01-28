@@ -45,7 +45,7 @@ export async function registerRoutes(
   app.post("/api/products", async (req, res) => {
     try {
       const data = insertProductSchema.parse(req.body);
-      const product = await storage.createProduct(data);
+      const product = await storage.createProduct(data as any);
       res.status(201).json(product);
     } catch (error) {
       res.status(400).json({ message: "Invalid product data" });
