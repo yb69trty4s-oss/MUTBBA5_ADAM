@@ -9,13 +9,15 @@ import { useLocation } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import type { Category, Product } from "@shared/schema";
+import type { Category, Product, DeliveryLocation } from "@shared/schema";
 import { unitTypes } from "@shared/schema";
-import { Plus, X, Upload, Loader2, Pencil, Check } from "lucide-react";
+import { Plus, X, Upload, Loader2, Pencil, Check, Trash2, MapPin } from "lucide-react";
 
 export default function Admin() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
+  
+  // Product states
   const [showAddProduct, setShowAddProduct] = useState(false);
   const [imageUrl, setImageUrl] = useState("");
   const [uploading, setUploading] = useState(false);
@@ -23,6 +25,13 @@ export default function Admin() {
   const [editingProductId, setEditingProductId] = useState<number | null>(null);
   const [editPrice, setEditPrice] = useState("");
   const [editUnitType, setEditUnitType] = useState("");
+  
+  // Delivery location states
+  const [showAddLocation, setShowAddLocation] = useState(false);
+  const [locationName, setLocationName] = useState("");
+  const [locationPrice, setLocationPrice] = useState("");
+  const [locationFile, setLocationFile] = useState<File | null>(null);
+  const [uploadingLocation, setUploadingLocation] = useState(false);
 
   const { data: categories = [] } = useQuery<Category[]>({
     queryKey: ["/api/categories"],
@@ -30,6 +39,10 @@ export default function Admin() {
 
   const { data: products = [] } = useQuery<Product[]>({
     queryKey: ["/api/products"],
+  });
+
+  const { data: deliveryLocations = [] } = useQuery<DeliveryLocation[]>({
+    queryKey: ["/api/delivery-locations"],
   });
 
   const createProduct = useMutation({
@@ -72,16 +85,37 @@ export default function Admin() {
     },
   });
 
-  const handleImageUpload = async (
-    file: File,
-    productDetails: {
-      name: string;
-      categoryName: string;
-      price: number;
-      isPopular: boolean;
-    }
-  ): Promise<string | null> => {
-    setUploading(true);
+  const createDeliveryLocation = useMutation({
+    mutationFn: async (data: { name: string; price: number; image: string }) => {
+      return apiRequest("POST", "/api/delivery-locations", data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/delivery-locations"] });
+      setShowAddLocation(false);
+      setLocationName("");
+      setLocationPrice("");
+      setLocationFile(null);
+      toast({ title: "تمت إضافة المنطقة" });
+    },
+    onError: () => {
+      toast({ title: "فشل في إضافة المنطقة", variant: "destructive" });
+    },
+  });
+
+  const deleteDeliveryLocation = useMutation({
+    mutationFn: async (id: number) => {
+      return apiRequest("DELETE", `/api/delivery-locations/${id}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/delivery-locations"] });
+      toast({ title: "تم حذف المنطقة" });
+    },
+    onError: () => {
+      toast({ title: "فشل في حذف المنطقة", variant: "destructive" });
+    },
+  });
+
+  const uploadImage = async (file: File, folder: string): Promise<string | null> => {
     try {
       const authRes = await fetch("/api/imagekit/auth");
       if (!authRes.ok) {
@@ -89,15 +123,12 @@ export default function Admin() {
       }
       const authParams = await authRes.json();
 
-      const sanitize = (str: string) =>
-        str.replace(/[^a-zA-Z0-9\u0600-\u06FF]/g, "_").replace(/_+/g, "_");
-
       const ext = file.name.split(".").pop() || "jpg";
-      const descriptiveFileName = `${sanitize(productDetails.name)}_cat-${sanitize(productDetails.categoryName)}_price-${productDetails.price}_popular-${productDetails.isPopular ? "yes" : "no"}_${Date.now()}.${ext}`;
+      const fileName = `${folder}_${Date.now()}.${ext}`;
 
       const formData = new FormData();
       formData.append("file", file);
-      formData.append("fileName", descriptiveFileName);
+      formData.append("fileName", fileName);
       formData.append("publicKey", authParams.publicKey);
       formData.append("signature", authParams.signature);
       formData.append("expire", authParams.expire.toString());
@@ -117,12 +148,10 @@ export default function Admin() {
     } catch (error) {
       toast({ title: "فشل رفع الصورة", variant: "destructive" });
       return null;
-    } finally {
-      setUploading(false);
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleProductSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
     
@@ -132,24 +161,19 @@ export default function Admin() {
     const unitType = formData.get("unitType") as string;
     const categoryId = parseInt(formData.get("categoryId") as string);
     const isPopular = formData.get("isPopular") === "true";
-    
-    const category = categories.find((c) => c.id === categoryId);
-    const categoryName = category?.name || "unknown";
 
+    setUploading(true);
     let finalImageUrl = imageUrl;
     
     if (selectedFile && !imageUrl) {
-      const uploadedUrl = await handleImageUpload(selectedFile, {
-        name,
-        categoryName,
-        price,
-        isPopular,
-      });
+      const uploadedUrl = await uploadImage(selectedFile, "product");
       if (!uploadedUrl) {
+        setUploading(false);
         return;
       }
       finalImageUrl = uploadedUrl;
     }
+    setUploading(false);
     
     createProduct.mutate({
       name,
@@ -159,6 +183,25 @@ export default function Admin() {
       categoryId,
       image: finalImageUrl,
       isPopular,
+    });
+  };
+
+  const handleLocationSubmit = async () => {
+    if (!locationName || !locationPrice || !locationFile) {
+      toast({ title: "يرجى ملء جميع الحقول", variant: "destructive" });
+      return;
+    }
+
+    setUploadingLocation(true);
+    const uploadedUrl = await uploadImage(locationFile, "delivery_location");
+    setUploadingLocation(false);
+
+    if (!uploadedUrl) return;
+
+    createDeliveryLocation.mutate({
+      name: locationName,
+      price: parseFloat(locationPrice) * 100,
+      image: uploadedUrl,
     });
   };
 
@@ -192,6 +235,131 @@ export default function Admin() {
         </div>
 
         <div className="space-y-6">
+          {/* Delivery Locations Section */}
+          <Card data-testid="card-delivery-locations">
+            <CardHeader className="flex flex-row items-center justify-between gap-4">
+              <CardTitle className="flex items-center gap-2">
+                <MapPin className="w-5 h-5" />
+                مناطق التوصيل ({deliveryLocations.length})
+              </CardTitle>
+              <Button
+                size="sm"
+                onClick={() => setShowAddLocation(true)}
+                data-testid="button-add-location"
+              >
+                <Plus className="h-4 w-4 ml-1" />
+                إضافة
+              </Button>
+            </CardHeader>
+            <CardContent>
+              {showAddLocation && (
+                <div className="border rounded-md p-4 mb-4 space-y-4">
+                  <div className="flex justify-between items-center">
+                    <h3 className="font-medium">منطقة جديدة</h3>
+                    <Button
+                      type="button"
+                      size="icon"
+                      variant="ghost"
+                      onClick={() => {
+                        setShowAddLocation(false);
+                        setLocationName("");
+                        setLocationPrice("");
+                        setLocationFile(null);
+                      }}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>اسم المنطقة</Label>
+                      <Input
+                        value={locationName}
+                        onChange={(e) => setLocationName(e.target.value)}
+                        placeholder="مثال: عمان - الشميساني"
+                        data-testid="input-location-name"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>سعر التوصيل (د.أ)</Label>
+                      <Input
+                        type="number"
+                        step="0.01"
+                        value={locationPrice}
+                        onChange={(e) => setLocationPrice(e.target.value)}
+                        placeholder="مثال: 2.5"
+                        data-testid="input-location-price"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>صورة المنطقة</Label>
+                    <Input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => setLocationFile(e.target.files?.[0] || null)}
+                      data-testid="input-location-image"
+                    />
+                    {locationFile && (
+                      <img
+                        src={URL.createObjectURL(locationFile)}
+                        alt="Preview"
+                        className="h-20 w-20 object-cover rounded-md mt-2"
+                      />
+                    )}
+                  </div>
+
+                  <Button
+                    onClick={handleLocationSubmit}
+                    disabled={!locationName || !locationPrice || !locationFile || uploadingLocation || createDeliveryLocation.isPending}
+                    data-testid="button-save-location"
+                  >
+                    {uploadingLocation || createDeliveryLocation.isPending ? (
+                      <Loader2 className="h-4 w-4 animate-spin ml-2" />
+                    ) : (
+                      <Upload className="h-4 w-4 ml-2" />
+                    )}
+                    {uploadingLocation ? "جاري الرفع..." : "حفظ المنطقة"}
+                  </Button>
+                </div>
+              )}
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {deliveryLocations.map((location) => (
+                  <div
+                    key={location.id}
+                    className="border rounded-md p-3 flex gap-3"
+                    data-testid={`card-location-${location.id}`}
+                  >
+                    <img
+                      src={location.image}
+                      alt={location.name}
+                      className="h-16 w-16 object-cover rounded-md flex-shrink-0"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium truncate">{location.name}</p>
+                      <p className="text-sm text-primary font-bold">
+                        {(location.price / 100).toFixed(2)} د.أ
+                      </p>
+                    </div>
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="text-destructive h-8 w-8"
+                      onClick={() => deleteDeliveryLocation.mutate(location.id)}
+                      data-testid={`button-delete-location-${location.id}`}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Products Section */}
           <Card data-testid="card-products">
             <CardHeader className="flex flex-row items-center justify-between gap-4">
               <CardTitle>المنتجات ({products.length})</CardTitle>
@@ -206,7 +374,7 @@ export default function Admin() {
             </CardHeader>
             <CardContent>
               {showAddProduct && (
-                <form onSubmit={handleSubmit} className="border rounded-md p-4 mb-4 space-y-4">
+                <form onSubmit={handleProductSubmit} className="border rounded-md p-4 mb-4 space-y-4">
                   <div className="flex justify-between items-center">
                     <h3 className="font-medium">منتج جديد</h3>
                     <Button

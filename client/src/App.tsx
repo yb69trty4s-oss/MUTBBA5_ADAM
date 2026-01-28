@@ -5,6 +5,10 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/not-found";
 import { SecretAdminButton } from "@/components/SecretAdminButton";
+import { CartProvider } from "@/context/CartContext";
+import { Cart } from "@/components/Cart";
+import { CartButton } from "@/components/CartButton";
+import { CheckoutModal } from "@/components/CheckoutModal";
 
 // Pages
 import Home from "@/pages/Home";
@@ -28,9 +32,14 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <Toaster />
-        <Router />
-        <SecretAdminButton />
+        <CartProvider>
+          <Toaster />
+          <Router />
+          <SecretAdminButton />
+          <CartButton />
+          <Cart />
+          <CheckoutModal />
+        </CartProvider>
       </TooltipProvider>
     </QueryClientProvider>
   );

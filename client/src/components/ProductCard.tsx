@@ -1,13 +1,30 @@
-import { motion } from "framer-motion";
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { type Product } from "@shared/schema";
-import { ShoppingBag, Star } from "lucide-react";
+import { ShoppingBag, Star, Plus, Minus, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useCart } from "@/context/CartContext";
 
 interface ProductCardProps {
   product: Product;
 }
 
 export function ProductCard({ product }: ProductCardProps) {
+  const [quantity, setQuantity] = useState(1);
+  const [showQuantity, setShowQuantity] = useState(false);
+  const [added, setAdded] = useState(false);
+  const { addItem } = useCart();
+
+  const handleAddToCart = () => {
+    addItem(product, quantity);
+    setAdded(true);
+    setTimeout(() => {
+      setAdded(false);
+      setShowQuantity(false);
+      setQuantity(1);
+    }, 1500);
+  };
+
   return (
     <motion.div
       whileHover={{ y: -8 }}
@@ -25,11 +42,6 @@ export function ProductCard({ product }: ProductCardProps) {
             <span>مشهور</span>
           </div>
         )}
-        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-          <Button className="rounded-full bg-white text-black hover:bg-white/90 font-bold px-6">
-            عرض التفاصيل
-          </Button>
-        </div>
       </div>
 
       <div className="p-5 flex-1 flex flex-col">
@@ -47,9 +59,67 @@ export function ProductCard({ product }: ProductCardProps) {
               {(product.price / 100).toFixed(2)} د.أ
             </span>
           </div>
-          <Button size="icon" className="rounded-full shadow-md bg-primary hover:bg-primary/90">
-            <ShoppingBag className="w-5 h-5" />
-          </Button>
+          
+          <AnimatePresence mode="wait">
+            {added ? (
+              <motion.div
+                key="added"
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                exit={{ scale: 0 }}
+                className="bg-green-500 text-white rounded-full p-2"
+              >
+                <Check className="w-5 h-5" />
+              </motion.div>
+            ) : showQuantity ? (
+              <motion.div
+                key="quantity"
+                initial={{ opacity: 0, width: 0 }}
+                animate={{ opacity: 1, width: "auto" }}
+                exit={{ opacity: 0, width: 0 }}
+                className="flex items-center gap-2"
+              >
+                <Button
+                  size="icon"
+                  variant="outline"
+                  className="h-8 w-8"
+                  onClick={() => setQuantity(Math.max(0.5, quantity - 0.5))}
+                  data-testid={`button-decrease-qty-${product.id}`}
+                >
+                  <Minus className="w-3 h-3" />
+                </Button>
+                <span className="w-10 text-center font-bold">{quantity}</span>
+                <Button
+                  size="icon"
+                  variant="outline"
+                  className="h-8 w-8"
+                  onClick={() => setQuantity(quantity + 0.5)}
+                  data-testid={`button-increase-qty-${product.id}`}
+                >
+                  <Plus className="w-3 h-3" />
+                </Button>
+                <Button
+                  size="icon"
+                  className="h-8 w-8 rounded-full bg-primary"
+                  onClick={handleAddToCart}
+                  data-testid={`button-confirm-add-${product.id}`}
+                >
+                  <Check className="w-4 h-4" />
+                </Button>
+              </motion.div>
+            ) : (
+              <motion.div key="button" initial={{ scale: 0 }} animate={{ scale: 1 }}>
+                <Button
+                  size="icon"
+                  className="rounded-full shadow-md bg-primary hover:bg-primary/90"
+                  onClick={() => setShowQuantity(true)}
+                  data-testid={`button-add-to-cart-${product.id}`}
+                >
+                  <ShoppingBag className="w-5 h-5" />
+                </Button>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </div>
     </motion.div>

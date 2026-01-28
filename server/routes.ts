@@ -3,7 +3,7 @@ import type { Server } from "http";
 import { storage } from "./storage";
 import { api } from "@shared/routes";
 import { z } from "zod";
-import { insertProductSchema, insertCategorySchema, updateProductPriceSchema } from "@shared/schema";
+import { insertProductSchema, insertCategorySchema, insertDeliveryLocationSchema, updateProductPriceSchema } from "@shared/schema";
 import ImageKit from "imagekit";
 
 export async function registerRoutes(
@@ -41,6 +41,11 @@ export async function registerRoutes(
     res.json(product);
   });
 
+  app.get("/api/delivery-locations", async (_req, res) => {
+    const locations = await storage.getDeliveryLocations();
+    res.json(locations);
+  });
+
   // === Create Routes ===
   app.post("/api/products", async (req, res) => {
     try {
@@ -62,6 +67,16 @@ export async function registerRoutes(
     }
   });
 
+  app.post("/api/delivery-locations", async (req, res) => {
+    try {
+      const data = insertDeliveryLocationSchema.parse(req.body);
+      const location = await storage.createDeliveryLocation(data);
+      res.status(201).json(location);
+    } catch (error) {
+      res.status(400).json({ message: "Invalid delivery location data" });
+    }
+  });
+
   // === Update Routes ===
   app.patch("/api/products/:id/price", async (req, res) => {
     try {
@@ -74,6 +89,20 @@ export async function registerRoutes(
       res.json(product);
     } catch (error) {
       res.status(400).json({ message: "Invalid update data" });
+    }
+  });
+
+  // === Delete Routes ===
+  app.delete("/api/delivery-locations/:id", async (req, res) => {
+    try {
+      const id = Number(req.params.id);
+      const deleted = await storage.deleteDeliveryLocation(id);
+      if (!deleted) {
+        return res.status(404).json({ message: "Delivery location not found" });
+      }
+      res.json({ success: true });
+    } catch (error) {
+      res.status(400).json({ message: "Failed to delete" });
     }
   });
 
