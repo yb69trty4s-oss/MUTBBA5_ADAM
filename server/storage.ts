@@ -27,6 +27,96 @@ export interface IStorage {
   seedProducts(data: any[]): Promise<void>;
 }
 
+export class MemStorage implements IStorage {
+  private categories: Map<number, Category>;
+  private products: Map<number, Product>;
+  private deliveryLocations: Map<number, DeliveryLocation>;
+  private currentIds: { [key: string]: number };
+
+  constructor() {
+    this.categories = new Map();
+    this.products = new Map();
+    this.deliveryLocations = new Map();
+    this.currentIds = { categories: 1, products: 1, deliveryLocations: 1 };
+  }
+
+  async getCategories(): Promise<Category[]> {
+    return Array.from(this.categories.values());
+  }
+
+  async getCategory(id: number): Promise<Category | undefined> {
+    return this.categories.get(id);
+  }
+
+  async getProducts(categoryId?: number, isPopular?: boolean): Promise<Product[]> {
+    let allProducts = Array.from(this.products.values());
+    if (categoryId) {
+      allProducts = allProducts.filter(p => p.categoryId === categoryId);
+    }
+    if (isPopular) {
+      allProducts = allProducts.filter(p => p.isPopular);
+    }
+    return allProducts;
+  }
+
+  async getProduct(id: number): Promise<Product | undefined> {
+    return this.products.get(id);
+  }
+
+  async getDeliveryLocations(): Promise<DeliveryLocation[]> {
+    return Array.from(this.deliveryLocations.values());
+  }
+
+  async createCategory(data: Omit<Category, 'id'>): Promise<Category> {
+    const id = this.currentIds.categories++;
+    const category = { ...data, id };
+    this.categories.set(id, category);
+    return category;
+  }
+
+  async createProduct(data: Omit<Product, 'id'>): Promise<Product> {
+    const id = this.currentIds.products++;
+    const product = { ...data, id, isPopular: data.isPopular ?? false, categoryId: data.categoryId ?? null };
+    this.products.set(id, product as Product);
+    return product as Product;
+  }
+
+  async createDeliveryLocation(data: Omit<DeliveryLocation, 'id'>): Promise<DeliveryLocation> {
+    const id = this.currentIds.deliveryLocations++;
+    const location = { ...data, id };
+    this.deliveryLocations.set(id, location);
+    return location;
+  }
+
+  async updateProductPrice(id: number, price: number, unitType?: string): Promise<Product | undefined> {
+    const product = this.products.get(id);
+    if (!product) return undefined;
+    const updated = { ...product, price, unitType: unitType || product.unitType };
+    this.products.set(id, updated);
+    return updated;
+  }
+
+  async deleteDeliveryLocation(id: number): Promise<boolean> {
+    return this.deliveryLocations.delete(id);
+  }
+
+  async seedCategories(data: any[]): Promise<void> {
+    if (this.categories.size === 0) {
+      for (const cat of data) {
+        await this.createCategory(cat);
+      }
+    }
+  }
+
+  async seedProducts(data: any[]): Promise<void> {
+    if (this.products.size === 0) {
+      for (const prod of data) {
+        await this.createProduct(prod);
+      }
+    }
+  }
+}
+
 export class DatabaseStorage implements IStorage {
   async getCategories(): Promise<Category[]> {
     return await db.select().from(categories);
@@ -104,4 +194,31 @@ export class DatabaseStorage implements IStorage {
   }
 }
 
-export const storage = new DatabaseStorage();
+let storage: IStorage;
+
+async function checkDatabase() {
+  if (!process.env.DATABASE_URL) return false;
+  try {
+    // Try a simple query to see if tables exist
+    await db.select().from(categories).limit(1);
+    return true;
+  } catch (e) {
+    console.error("Database connection failed or tables missing, falling back to memory storage:", e);
+    return false;
+  }
+}
+
+// Initial storage assignment, will be updated in registerRoutes if needed
+storage = new MemStorage();
+
+export async function initializeStorage() {
+  const isDbAvailable = await checkDatabase();
+  if (isDbAvailable) {
+    storage = new DatabaseStorage();
+  } else {
+    storage = new MemStorage();
+  }
+  return storage;
+}
+
+export { storage };
