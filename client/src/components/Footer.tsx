@@ -1,4 +1,5 @@
-import { Instagram, Facebook, Phone, MapPin, Mail } from "lucide-react";
+import { Instagram, Facebook, Phone, MapPin, Mail, MessageCircle } from "lucide-react";
+import { SiTiktok } from "react-icons/si";
 
 export function Footer() {
   return (
@@ -31,16 +32,12 @@ export function Footer() {
             <h4 className="text-xl font-bold mb-6 text-white font-display">تواصل معنا</h4>
             <ul className="space-y-4 text-white/70">
               <li className="flex items-center gap-3">
-                <Phone className="w-5 h-5 text-primary" />
-                <span dir="ltr">+962 79 123 4567</span>
+                <MessageCircle className="w-5 h-5 text-primary" />
+                <span dir="ltr">+961 81 984 634</span>
               </li>
               <li className="flex items-center gap-3">
                 <Mail className="w-5 h-5 text-primary" />
                 <span>info@kibbeh-house.com</span>
-              </li>
-              <li className="flex items-center gap-3">
-                <MapPin className="w-5 h-5 text-primary" />
-                <span>عمان، الأردن</span>
               </li>
             </ul>
           </div>
@@ -48,6 +45,12 @@ export function Footer() {
           <div>
             <h4 className="text-xl font-bold mb-6 text-white font-display">تابعنا</h4>
             <div className="flex gap-4">
+              <a href="https://vt.tiktok.com/ZSamBP9Qp/" target="_blank" rel="noopener noreferrer" className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center hover:bg-primary hover:text-white transition-all duration-300">
+                <SiTiktok className="w-6 h-6" />
+              </a>
+              <a href="https://wa.me/96181984634" target="_blank" rel="noopener noreferrer" className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center hover:bg-primary hover:text-white transition-all duration-300">
+                <MessageCircle className="w-6 h-6" />
+              </a>
               <a href="#" className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center hover:bg-primary hover:text-white transition-all duration-300">
                 <Instagram className="w-6 h-6" />
               </a>
