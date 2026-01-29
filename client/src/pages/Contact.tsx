@@ -4,7 +4,8 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { MapPin, Phone, Mail, Clock, Send } from "lucide-react";
+import { MapPin, Phone, Mail, Clock, Send, MessageCircle } from "lucide-react";
+import { SiTiktok } from "react-icons/si";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -91,11 +92,11 @@ export default function Contact() {
               <ul className="space-y-6">
                 <li className="flex items-start gap-4">
                   <div className="w-12 h-12 bg-background rounded-full flex items-center justify-center text-primary shadow-sm shrink-0">
-                    <Phone className="w-6 h-6" />
+                    <MessageCircle className="w-6 h-6" />
                   </div>
                   <div>
-                    <h4 className="font-bold mb-1">رقم الهاتف</h4>
-                    <p className="text-muted-foreground" dir="ltr">+962 79 123 4567</p>
+                    <h4 className="font-bold mb-1">واتساب</h4>
+                    <p className="text-muted-foreground" dir="ltr">+961 81 984 634</p>
                   </div>
                 </li>
                 <li className="flex items-start gap-4">
@@ -109,11 +110,11 @@ export default function Contact() {
                 </li>
                 <li className="flex items-start gap-4">
                   <div className="w-12 h-12 bg-background rounded-full flex items-center justify-center text-primary shadow-sm shrink-0">
-                    <MapPin className="w-6 h-6" />
+                    <SiTiktok className="w-6 h-6" />
                   </div>
                   <div>
-                    <h4 className="font-bold mb-1">الموقع</h4>
-                    <p className="text-muted-foreground">شارع مكة، مجمع الحسيني، عمان، الأردن</p>
+                    <h4 className="font-bold mb-1">تيك توك</h4>
+                    <p className="text-muted-foreground">@kibbeh_house</p>
                   </div>
                 </li>
                 <li className="flex items-start gap-4">
@@ -129,18 +130,19 @@ export default function Contact() {
             </div>
 
             <div className="rounded-3xl overflow-hidden h-64 shadow-lg border border-border">
-              {/* Placeholder map image - in production use Google Maps iframe */}
               <div className="w-full h-full bg-muted flex items-center justify-center relative">
                 <img 
                   src="https://images.unsplash.com/photo-1524661135-423995f22d0b?w=800&auto=format&fit=crop&q=60" 
-                  alt="Map Location" 
+                  alt="Contact Us" 
                   className="w-full h-full object-cover opacity-60"
                 />
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <Button variant="secondary" className="shadow-lg font-bold">
-                    <MapPin className="w-4 h-4 mr-2" />
-                    عرض على الخريطة
-                  </Button>
+                  <a href="https://wa.me/96181984634" target="_blank" rel="noopener noreferrer">
+                    <Button variant="secondary" className="shadow-lg font-bold">
+                      <MessageCircle className="w-4 h-4 ml-2" />
+                      تواصل معنا عبر واتساب
+                    </Button>
+                  </a>
                 </div>
               </div>
             </div>

@@ -6,7 +6,8 @@ import { Navigation } from "@/components/Navigation";
 import { Footer } from "@/components/Footer";
 import { ProductCard } from "@/components/ProductCard";
 import { Button } from "@/components/ui/button";
-import { ChevronDown, Utensils } from "lucide-react";
+import { ChevronDown, Utensils, MessageCircle } from "lucide-react";
+import { SiTiktok } from "react-icons/si";
 
 export default function Home() {
   const [heroImage, setHeroImage] = useState<string>("");
@@ -77,6 +78,49 @@ export default function Home() {
               أصنافنا المميزة
             </h2>
             <div className="w-24 h-1 bg-primary mx-auto rounded-full" />
+          </div>
+
+          <div className="max-w-4xl mx-auto mb-16 grid grid-cols-1 md:grid-cols-2 gap-8">
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              className="bg-card p-8 rounded-2xl border border-border/50 shadow-sm text-center"
+            >
+              <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4 text-primary">
+                <MessageCircle className="w-8 h-8" />
+              </div>
+              <h3 className="text-2xl font-bold mb-2">واتساب</h3>
+              <p className="text-muted-foreground mb-4">اطلب الآن مباشرة عبر الواتساب</p>
+              <a 
+                href="https://wa.me/96181984634" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-xl font-bold text-primary hover:underline"
+                dir="ltr"
+              >
+                +961 81 984 634
+              </a>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              className="bg-card p-8 rounded-2xl border border-border/50 shadow-sm text-center"
+            >
+              <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4 text-primary">
+                <SiTiktok className="w-8 h-8" />
+              </div>
+              <h3 className="text-2xl font-bold mb-2">تيك توك</h3>
+              <p className="text-muted-foreground mb-4">تابعوا أحدث فيديوهاتنا</p>
+              <a 
+                href="https://vt.tiktok.com/ZSamBP9Qp/" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-xl font-bold text-primary hover:underline"
+              >
+                @kibbeh_house
+              </a>
+            </motion.div>
           </div>
 
           {isCatLoading ? (

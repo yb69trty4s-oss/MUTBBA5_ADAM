@@ -24,7 +24,7 @@ export function CheckoutModal() {
   });
 
   const buildWhatsAppMessage = (deliveryLocation?: DeliveryLocation) => {
-    let message = "مرحباً، أريد طلب:\n\n";
+    let message = "مرحباً كبة الدار، أود طلب:\n\n";
     
     items.forEach((item) => {
       message += `- ${item.product.name}: ${item.quantity} ${item.product.unitType || "حبة"}\n`;
@@ -44,17 +44,19 @@ export function CheckoutModal() {
   };
 
   const handleTakeaway = () => {
+    const whatsappNumber = "96181984634";
     const message = buildWhatsAppMessage();
-    window.open(`https://wa.me/?text=${message}`, "_blank");
+    window.open(`https://wa.me/${whatsappNumber}?text=${message}`, "_blank");
     clearCart();
     setIsCheckoutOpen(false);
     setStep("choice");
   };
 
   const handleDeliverySelect = (location: DeliveryLocation) => {
+    const whatsappNumber = "96181984634";
     setSelectedLocation(location);
     const message = buildWhatsAppMessage(location);
-    window.open(`https://wa.me/?text=${message}`, "_blank");
+    window.open(`https://wa.me/${whatsappNumber}?text=${message}`, "_blank");
     clearCart();
     setIsCheckoutOpen(false);
     setStep("choice");
