@@ -136,7 +136,6 @@ async function seedDatabase() {
   console.log("Seeding database...");
   
   await storage.seedCategories([
-    { name: "مقبلات", slug: "appetizers", image: "/images/hero1.png" },
     { name: "أطباق رئيسية", slug: "main-dishes", image: "/images/hero2.png" },
     { name: "حلويات", slug: "desserts", image: "/images/hero1.png" },
   ]);
@@ -147,7 +146,7 @@ async function seedDatabase() {
   if (catMap.size > 0) {
     await storage.seedProducts([
       { 
-        categoryId: catMap.get("appetizers"), 
+        categoryId: catMap.get("main-dishes"), 
         name: "كبة مقلية", 
         description: "كبة محشوة باللحم والصنوبر مقلية ومقرمشة", 
         price: 500,
@@ -156,7 +155,7 @@ async function seedDatabase() {
         isPopular: true
       },
       { 
-        categoryId: catMap.get("appetizers"), 
+        categoryId: catMap.get("main-dishes"), 
         name: "سمبوسة", 
         description: "سمبوسة هشة بحشوة الجبن أو اللحم", 
         price: 300,
@@ -165,7 +164,7 @@ async function seedDatabase() {
         isPopular: true
       },
       { 
-        categoryId: catMap.get("appetizers"), 
+        categoryId: catMap.get("main-dishes"), 
         name: "ورق عنب", 
         description: "ورق عنب بخلطة الأرز والليمون المميزة", 
         price: 600,
