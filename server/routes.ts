@@ -190,15 +190,6 @@ async function seedDatabase() {
         image: "/images/hero2.png",
         isPopular: false
       },
-      { 
-        categoryId: catMap.get("desserts"), 
-        name: "كنافة نابلسية", 
-        description: "كنافة بالجبنة الساخنة والقطر", 
-        price: 800,
-        unitType: "كيلو",
-        image: "/images/hero1.png",
-        isPopular: true
-      },
     ]);
   }
   
