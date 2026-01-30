@@ -128,6 +128,83 @@ export async function registerRoutes(
     res.json({ ...authParams, publicKey });
   });
 
+  // === ImageKit Sync - Check for new images and add them as products ===
+  app.post("/api/imagekit/sync", async (_req, res) => {
+    const privateKey = process.env.IMAGEKIT_PRIVATE_KEY;
+    const publicKey = process.env.IMAGEKIT_PUBLIC_KEY;
+    const urlEndpoint = process.env.IMAGEKIT_URL_ENDPOINT;
+
+    if (!privateKey || !publicKey || !urlEndpoint) {
+      return res.status(500).json({ message: "ImageKit not configured" });
+    }
+
+    try {
+      const imagekit = new ImageKit({
+        publicKey,
+        privateKey,
+        urlEndpoint,
+      });
+
+      const files = await imagekit.listFiles({
+        path: "/",
+        fileType: "image",
+      });
+
+      const newProducts: any[] = [];
+      
+      let categories = await storage.getCategories();
+      let defaultCategoryId: number;
+      
+      if (categories.length === 0) {
+        const newCategory = await storage.createCategory({
+          name: "منتجات",
+          slug: "products",
+          image: urlEndpoint + "/default-category.jpg",
+        });
+        defaultCategoryId = newCategory.id;
+      } else {
+        defaultCategoryId = categories[0].id;
+      }
+
+      for (const file of files) {
+        const existingSynced = await storage.getSyncedImageByFileId(file.fileId);
+        
+        if (!existingSynced) {
+          await storage.createSyncedImage({
+            fileId: file.fileId,
+            fileName: file.name,
+            url: file.url,
+            syncedAt: new Date().toISOString(),
+          });
+
+          const productName = file.name.replace(/\.[^/.]+$/, "").replace(/[-_]/g, " ");
+          
+          const newProduct = await storage.createProduct({
+            categoryId: defaultCategoryId,
+            name: productName,
+            description: `منتج ${productName}`,
+            price: 100,
+            unitType: "حبة",
+            image: file.url,
+            isPopular: false,
+          });
+
+          newProducts.push(newProduct);
+        }
+      }
+
+      res.json({
+        success: true,
+        totalFiles: files.length,
+        newProductsAdded: newProducts.length,
+        products: newProducts,
+      });
+    } catch (error: any) {
+      console.error("ImageKit sync error:", error);
+      res.status(500).json({ message: error.message || "Sync failed" });
+    }
+  });
+
   // === Seeding ===
   await seedDatabase();
 
