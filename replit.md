@@ -59,6 +59,7 @@ Preferred communication style: Simple, everyday language.
 ### Image Hosting
 - ImageKit integration configured in server/routes.ts for image uploads in admin panel
 - Requires ImageKit credentials for product image management
+- **Auto-sync feature**: The website automatically checks ImageKit every 2 minutes for new photos and adds them as products. New images are tracked in the `synced_images` table to avoid duplicates.
 
 ### Third-Party Libraries
 - Radix UI primitives for accessible component foundations

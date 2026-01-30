@@ -4,6 +4,13 @@ import { apiRequest } from "@/lib/queryClient";
 
 const SYNC_INTERVAL = 2 * 60 * 1000;
 
+interface SyncResponse {
+  success: boolean;
+  totalFiles: number;
+  newProductsAdded: number;
+  products: unknown[];
+}
+
 export function useImageKitSync() {
   const queryClient = useQueryClient();
   const isRunning = useRef(false);
@@ -14,9 +21,8 @@ export function useImageKitSync() {
       
       isRunning.current = true;
       try {
-        const result = await apiRequest("/api/imagekit/sync", {
-          method: "POST",
-        });
+        const response = await apiRequest("POST", "/api/imagekit/sync");
+        const result: SyncResponse = await response.json();
         
         if (result.newProductsAdded > 0) {
           queryClient.invalidateQueries({ queryKey: ["/api/products"] });

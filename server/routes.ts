@@ -167,13 +167,18 @@ export async function registerRoutes(
       }
 
       for (const file of files) {
-        const existingSynced = await storage.getSyncedImageByFileId(file.fileId);
+        if (!('fileId' in file) || !('url' in file)) continue;
+        
+        const fileId = file.fileId as string;
+        const fileUrl = file.url as string;
+        
+        const existingSynced = await storage.getSyncedImageByFileId(fileId);
         
         if (!existingSynced) {
           await storage.createSyncedImage({
-            fileId: file.fileId,
+            fileId: fileId,
             fileName: file.name,
-            url: file.url,
+            url: fileUrl,
             syncedAt: new Date().toISOString(),
           });
 
@@ -185,7 +190,7 @@ export async function registerRoutes(
             description: `منتج ${productName}`,
             price: 100,
             unitType: "حبة",
-            image: file.url,
+            image: fileUrl,
             isPopular: false,
           });
 
