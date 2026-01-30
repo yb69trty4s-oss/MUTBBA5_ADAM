@@ -16,10 +16,6 @@ export function ProductCard({ product }: ProductCardProps) {
   const { addItem } = useCart();
 
   const handleAddToCart = () => {
-    const whatsappNumber = "96181984634";
-    const message = encodeURIComponent(`مرحباً كبة الدار، أود طلب:\n- ${product.name}\n- الكمية: ${quantity}\n- السعر: ${(product.price / 100).toFixed(2)} د.أ\n\nشكراً لكم!`);
-    window.open(`https://wa.me/${whatsappNumber}?text=${message}`, '_blank');
-    
     addItem(product, quantity);
     setAdded(true);
     setTimeout(() => {
