@@ -147,7 +147,7 @@ export async function registerRoutes(
 
       const files = await imagekit.listFiles({
         path: "/",
-        fileType: "image",
+        fileType: "all",
       });
 
       const newProducts: any[] = [];
