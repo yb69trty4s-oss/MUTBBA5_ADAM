@@ -9,6 +9,7 @@ import { CartProvider } from "@/context/CartContext";
 import { Cart } from "@/components/Cart";
 import { CartButton } from "@/components/CartButton";
 import { CheckoutModal } from "@/components/CheckoutModal";
+import { useImageKitSync } from "@/hooks/useImageKitSync";
 
 // Pages
 import Home from "@/pages/Home";
@@ -28,17 +29,24 @@ function Router() {
   );
 }
 
+function ImageKitSyncProvider({ children }: { children: React.ReactNode }) {
+  useImageKitSync();
+  return <>{children}</>;
+}
+
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <CartProvider>
-          <Toaster />
-          <Router />
-          <SecretAdminButton />
-          <CartButton />
-          <Cart />
-          <CheckoutModal />
+          <ImageKitSyncProvider>
+            <Toaster />
+            <Router />
+            <SecretAdminButton />
+            <CartButton />
+            <Cart />
+            <CheckoutModal />
+          </ImageKitSyncProvider>
         </CartProvider>
       </TooltipProvider>
     </QueryClientProvider>
