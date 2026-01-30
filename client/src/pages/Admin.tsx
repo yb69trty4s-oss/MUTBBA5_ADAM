@@ -359,6 +359,53 @@ export default function Admin() {
             </CardContent>
           </Card>
 
+          {/* Categories Section */}
+          <Card data-testid="card-categories">
+            <CardHeader className="flex flex-row items-center justify-between gap-4">
+              <CardTitle>التصنيفات ({categories.length})</CardTitle>
+              <div className="flex gap-2">
+                <Input
+                  placeholder="اسم التصنيف الجديد"
+                  className="w-48 h-8"
+                  id="new-category-name"
+                />
+                <Button
+                  size="sm"
+                  onClick={async () => {
+                    const input = document.getElementById("new-category-name") as HTMLInputElement;
+                    const name = input.value;
+                    if (!name) return;
+                    
+                    try {
+                      await apiRequest("POST", "/api/categories", { 
+                        name, 
+                        slug: name.toLowerCase().replace(/\s+/g, '-'),
+                        image: "/images/hero1.png" // default image
+                      });
+                      queryClient.invalidateQueries({ queryKey: ["/api/categories"] });
+                      input.value = "";
+                      toast({ title: "تم إضافة التصنيف" });
+                    } catch (e) {
+                      toast({ title: "فشل إضافة التصنيف", variant: "destructive" });
+                    }
+                  }}
+                >
+                  <Plus className="h-4 w-4 ml-1" />
+                  إضافة
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                {categories.map((cat) => (
+                  <div key={cat.id} className="border rounded-md p-2 text-center bg-muted/30">
+                    <p className="font-medium text-sm">{cat.name}</p>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
           {/* Products Section */}
           <Card data-testid="card-products">
             <CardHeader className="flex flex-row items-center justify-between gap-4">
