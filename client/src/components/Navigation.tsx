@@ -5,6 +5,8 @@ import { Menu, X, ShoppingBag } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/context/CartContext";
 
+import logoImg from "@assets/67b44034-7853-4948-8a1a-55382670af9a_1769759701219.jpeg";
+
 const links = [
   { href: "/", label: "الرئيسية" },
   { href: "/menu", label: "القائمة" },
@@ -33,11 +35,11 @@ export function Navigation() {
         <div className="flex items-center justify-between h-16 sm:h-20">
           <Link href="/">
             <div className="flex items-center gap-2 cursor-pointer group">
-              <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center text-primary-foreground shadow-lg group-hover:scale-105 transition-transform duration-300">
-                <span className="font-display text-xl font-bold">ك</span>
+              <div className="w-10 h-10 overflow-hidden rounded-full flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform duration-300">
+                <img src={logoImg} alt="Logo" className="w-full h-full object-cover" />
               </div>
               <span className={`font-display text-2xl font-bold transition-colors duration-300 ${scrolled ? "text-foreground" : "text-white"}`}>
-                كبة الدار
+                مطبخ آدم
               </span>
             </div>
           </Link>

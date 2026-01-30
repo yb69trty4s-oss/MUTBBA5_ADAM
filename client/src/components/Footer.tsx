@@ -1,6 +1,8 @@
 import { Instagram, Facebook, Phone, MapPin, Mail, MessageCircle } from "lucide-react";
 import { SiTiktok } from "react-icons/si";
 
+import logoImg from "@assets/67b44034-7853-4948-8a1a-55382670af9a_1769759701219.jpeg";
+
 export function Footer() {
   return (
     <footer className="bg-foreground text-background pt-20 pb-10">
@@ -8,10 +10,10 @@ export function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
           <div className="space-y-6">
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-primary rounded-full flex items-center justify-center text-primary-foreground">
-                <span className="font-display text-2xl font-bold">ك</span>
+              <div className="w-12 h-12 overflow-hidden rounded-full flex items-center justify-center">
+                <img src={logoImg} alt="Logo" className="w-full h-full object-cover" />
               </div>
-              <span className="font-display text-3xl font-bold text-white">كبة الدار</span>
+              <span className="font-display text-3xl font-bold text-white">مطبخ آدم</span>
             </div>
             <p className="text-white/60 leading-relaxed max-w-xs">
               نقدم لكم أشهى المأكولات الشرقية المحضرة بكل حب وعناية، لننقل لكم طعم الأصالة في كل لقمة.
@@ -63,7 +65,7 @@ export function Footer() {
 
         <div className="border-t border-white/10 pt-8 flex flex-col md:flex-row justify-center md:justify-between items-center gap-4 text-center md:text-right">
           <p className="text-white/40 text-sm">
-            © 2024 كبة الدار. جميع الحقوق محفوظة.
+            © 2024 مطبخ آدم. جميع الحقوق محفوظة.
           </p>
           <p className="text-white/40 text-sm flex items-center gap-1">
             صمم بكل حب <span className="text-red-500">♥</span> للأكل الشرقي

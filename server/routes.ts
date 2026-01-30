@@ -134,65 +134,12 @@ export async function registerRoutes(
 
 async function seedDatabase() {
   try {
-    console.log("Seeding database...");
+    console.log("Seeding database (skipping products)...");
     
-    await storage.seedCategories([
-      { name: "أطباق رئيسية", slug: "main-dishes", image: "/images/hero2.png" },
-      { name: "حلويات", slug: "desserts", image: "/images/hero1.png" },
-    ]);
-
-    const categories = await storage.getCategories();
-    const catMap = new Map(categories.map(c => [c.slug, c.id]));
-
-    if (catMap.size > 0) {
-      await storage.seedProducts([
-        { 
-          categoryId: catMap.get("main-dishes"), 
-          name: "كبة مقلية", 
-          description: "كبة محشوة باللحم والصنوبر مقلية ومقرمشة", 
-          price: 500,
-          unitType: "دزينة",
-          image: "/images/hero2.png",
-          isPopular: true
-        },
-        { 
-          categoryId: catMap.get("main-dishes"), 
-          name: "سمبوسة", 
-          description: "سمبوسة هشة بحشوة الجبن أو اللحم", 
-          price: 300,
-          unitType: "دزينة",
-          image: "/images/hero1.png",
-          isPopular: true
-        },
-        { 
-          categoryId: catMap.get("main-dishes"), 
-          name: "ورق عنب", 
-          description: "ورق عنب بخلطة الأرز والليمون المميزة", 
-          price: 600,
-          unitType: "كيلو",
-          image: "/images/hero2.png",
-          isPopular: true
-        },
-        { 
-          categoryId: catMap.get("main-dishes"), 
-          name: "كبة مشوية", 
-          description: "كبة مشوية على الفحم بنكهة الشواء الأصيلة", 
-          price: 1200,
-          unitType: "كيلو",
-          image: "/images/hero1.png",
-          isPopular: true
-        },
-        { 
-          categoryId: catMap.get("main-dishes"), 
-          name: "منسف أردني", 
-          description: "منسف باللحم البلدي والجميد الكركي", 
-          price: 2500,
-          unitType: "حبة",
-          image: "/images/hero2.png",
-          isPopular: false
-        },
-      ]);
-    }
+    // We clear current data by not seeding anything or providing empty arrays
+    // if the user wants to remove ALL products.
+    // To completely clear the DB tables we would need a storage method.
+    // For now, we just stop adding the default products.
     
     console.log("Database seeded successfully.");
   } catch (error) {

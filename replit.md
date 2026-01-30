@@ -1,8 +1,8 @@
-# Kibbeh House (كبة الدار) - Arabic Food Menu Application
+# مطبخ آدم - Arabic Food Menu Application
 
 ## Overview
 
-This is an Arabic-language food menu web application for "Kibbeh House" (كبة الدار), a restaurant specializing in Middle Eastern cuisine. The application features a customer-facing menu display with category filtering, a home page with hero section and featured products, and a secret admin panel for product management. The entire UI is designed with RTL (right-to-left) support for Arabic text.
+This is an Arabic-language food menu web application for "مطبخ آدم", a restaurant specializing in Middle Eastern cuisine. The application features a customer-facing menu display with category filtering, a home page with hero section and featured products, and a secret admin panel for product management. The entire UI is designed with RTL (right-to-left) support for Arabic text.
 
 ## User Preferences
 
