@@ -1,8 +1,9 @@
 import { Link, useLocation } from "wouter";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X } from "lucide-react";
+import { Menu, X, ShoppingBag } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useCart } from "@/context/CartContext";
 
 const links = [
   { href: "/", label: "الرئيسية" },
@@ -13,6 +14,8 @@ export function Navigation() {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [location] = useLocation();
+  const { getTotalItems, setIsCartOpen } = useCart();
+  const totalItems = getTotalItems();
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 50);
@@ -59,17 +62,47 @@ export function Navigation() {
                 </span>
               </Link>
             ))}
-            <Link href="/contact">
-              <Button 
-                variant={scrolled ? "default" : "secondary"}
-                className={`rounded-full px-6 font-bold shadow-lg ${!scrolled && "bg-white text-primary hover:bg-white/90"}`}
+            
+            <div className="flex items-center gap-4">
+              <Button
+                variant="ghost"
+                size="icon"
+                className={`relative rounded-full ${scrolled ? "text-foreground" : "text-white"}`}
+                onClick={() => setIsCartOpen(true)}
               >
-                اتصل بنا
+                <ShoppingBag className="w-6 h-6" />
+                {totalItems > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold border-2 border-background">
+                    {totalItems}
+                  </span>
+                )}
               </Button>
-            </Link>
+
+              <Link href="/contact">
+                <Button 
+                  variant={scrolled ? "default" : "secondary"}
+                  className={`rounded-full px-6 font-bold shadow-lg ${!scrolled && "bg-white text-primary hover:bg-white/90"}`}
+                >
+                  اتصل بنا
+                </Button>
+              </Link>
+            </div>
           </div>
 
-          <div className="md:hidden">
+          <div className="flex items-center gap-2 md:hidden">
+            <Button
+              variant="ghost"
+              size="icon"
+              className={`relative rounded-full ${scrolled ? "text-foreground" : "text-white"}`}
+              onClick={() => setIsCartOpen(true)}
+            >
+              <ShoppingBag className="w-6 h-6" />
+              {totalItems > 0 && (
+                <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold border-2 border-background">
+                  {totalItems}
+                </span>
+              )}
+            </Button>
             <button
               onClick={() => setIsOpen(!isOpen)}
               className={`p-2 rounded-lg transition-colors ${scrolled ? "text-foreground hover:bg-muted" : "text-white hover:bg-white/10"}`}

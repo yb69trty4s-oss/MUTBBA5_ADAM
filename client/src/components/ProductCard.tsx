@@ -20,7 +20,6 @@ export function ProductCard({ product }: ProductCardProps) {
     setAdded(true);
     setTimeout(() => {
       setAdded(false);
-      setShowQuantity(false);
       setQuantity(1);
     }, 1500);
   };
