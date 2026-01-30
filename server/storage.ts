@@ -3,9 +3,11 @@ import {
   categories,
   products,
   deliveryLocations,
+  syncedImages,
   type Category,
   type Product,
   type DeliveryLocation,
+  type SyncedImage,
 } from "@shared/schema";
 import { eq } from "drizzle-orm";
 
@@ -25,19 +27,25 @@ export interface IStorage {
   
   seedCategories(data: any[]): Promise<void>;
   seedProducts(data: any[]): Promise<void>;
+  
+  getSyncedImages(): Promise<SyncedImage[]>;
+  getSyncedImageByFileId(fileId: string): Promise<SyncedImage | undefined>;
+  createSyncedImage(data: Omit<SyncedImage, 'id'>): Promise<SyncedImage>;
 }
 
 export class MemStorage implements IStorage {
   private categories: Map<number, Category>;
   private products: Map<number, Product>;
   private deliveryLocations: Map<number, DeliveryLocation>;
+  private syncedImagesMap: Map<number, SyncedImage>;
   private currentIds: { [key: string]: number };
 
   constructor() {
     this.categories = new Map();
     this.products = new Map();
     this.deliveryLocations = new Map();
-    this.currentIds = { categories: 1, products: 1, deliveryLocations: 1 };
+    this.syncedImagesMap = new Map();
+    this.currentIds = { categories: 1, products: 1, deliveryLocations: 1, syncedImages: 1 };
   }
 
   async getCategories(): Promise<Category[]> {
@@ -115,6 +123,21 @@ export class MemStorage implements IStorage {
       }
     }
   }
+
+  async getSyncedImages(): Promise<SyncedImage[]> {
+    return Array.from(this.syncedImagesMap.values());
+  }
+
+  async getSyncedImageByFileId(fileId: string): Promise<SyncedImage | undefined> {
+    return Array.from(this.syncedImagesMap.values()).find(s => s.fileId === fileId);
+  }
+
+  async createSyncedImage(data: Omit<SyncedImage, 'id'>): Promise<SyncedImage> {
+    const id = this.currentIds.syncedImages++;
+    const synced = { ...data, id };
+    this.syncedImagesMap.set(id, synced);
+    return synced;
+  }
 }
 
 export class DatabaseStorage implements IStorage {
@@ -191,6 +214,20 @@ export class DatabaseStorage implements IStorage {
     if ((await this.getProducts()).length === 0) {
       await db.insert(products).values(data);
     }
+  }
+
+  async getSyncedImages(): Promise<SyncedImage[]> {
+    return await db.select().from(syncedImages);
+  }
+
+  async getSyncedImageByFileId(fileId: string): Promise<SyncedImage | undefined> {
+    const [synced] = await db.select().from(syncedImages).where(eq(syncedImages.fileId, fileId));
+    return synced;
+  }
+
+  async createSyncedImage(data: Omit<SyncedImage, 'id'>): Promise<SyncedImage> {
+    const [synced] = await db.insert(syncedImages).values(data).returning();
+    return synced;
   }
 }
 

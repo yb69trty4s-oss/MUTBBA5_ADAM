@@ -30,6 +30,14 @@ export const deliveryLocations = pgTable("delivery_locations", {
   image: text("image").notNull(),
 });
 
+export const syncedImages = pgTable("synced_images", {
+  id: serial("id").primaryKey(),
+  fileId: text("file_id").notNull().unique(),
+  fileName: text("file_name").notNull(),
+  url: text("url").notNull(),
+  syncedAt: text("synced_at").notNull(),
+});
+
 export const insertCategorySchema = createInsertSchema(categories).omit({ id: true });
 export const insertProductSchema = createInsertSchema(products).omit({ id: true });
 export const insertDeliveryLocationSchema = createInsertSchema(deliveryLocations).omit({ id: true });
@@ -42,6 +50,7 @@ export const updateProductPriceSchema = z.object({
 export type Category = typeof categories.$inferSelect;
 export type Product = typeof products.$inferSelect;
 export type DeliveryLocation = typeof deliveryLocations.$inferSelect;
+export type SyncedImage = typeof syncedImages.$inferSelect;
 export type InsertProduct = z.infer<typeof insertProductSchema>;
 export type InsertDeliveryLocation = z.infer<typeof insertDeliveryLocationSchema>;
 export type UpdateProductPrice = z.infer<typeof updateProductPriceSchema>;
