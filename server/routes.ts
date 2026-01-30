@@ -5,6 +5,8 @@ import { api } from "@shared/routes";
 import { z } from "zod";
 import { insertProductSchema, insertCategorySchema, insertDeliveryLocationSchema, updateProductPriceSchema } from "@shared/schema";
 import ImageKit from "imagekit";
+import fs from "fs";
+import path from "path";
 
 export async function registerRoutes(
   httpServer: Server,
@@ -129,20 +131,125 @@ export async function registerRoutes(
   // === Seeding ===
   await seedDatabase();
 
+  // === Seed Products Endpoint ===
+  app.post("/api/seed-products", async (_req, res) => {
+    try {
+      const results = await seedProducts();
+      res.json({ success: true, count: results.length, products: results });
+    } catch (error: any) {
+      console.error("Seeding error:", error);
+      res.status(500).json({ message: error.message || "Seeding failed" });
+    }
+  });
+
   return httpServer;
 }
 
 async function seedDatabase() {
   try {
     console.log("Seeding database (skipping products)...");
-    
-    // We clear current data by not seeding anything or providing empty arrays
-    // if the user wants to remove ALL products.
-    // To completely clear the DB tables we would need a storage method.
-    // For now, we just stop adding the default products.
-    
     console.log("Database seeded successfully.");
   } catch (error) {
     console.error("Database seeding failed, but app will continue with memory fallback if possible:", error);
   }
+}
+
+interface ProductData {
+  name: string;
+  description: string;
+  imagePath: string;
+}
+
+const productsList: ProductData[] = [
+  { name: "كبة مقلية", description: "كبة مقرمشة ولذيذة مقلية بالزيت", imagePath: "generated_images/kibbeh_fried.png" },
+  { name: "كبة مشوية", description: "كبة مشوية على الفحم بنكهة مميزة", imagePath: "generated_images/kibbeh_grilled.png" },
+  { name: "رقايق جبنة", description: "رقائق مقرمشة محشوة بالجبنة البيضاء", imagePath: "generated_images/raqayeq_cheese.png" },
+  { name: "رقايق جبنة وسجق", description: "رقائق محشوة بالجبنة والسجق التركي", imagePath: "generated_images/raqayeq_cheese_sausage.png" },
+  { name: "سمبوسك لحمة", description: "سمبوسك مقلي محشو باللحم المفروم والصنوبر", imagePath: "generated_images/sambousa_meat.png" },
+  { name: "سمبوسك جبنة", description: "سمبوسك مقلي محشو بالجبنة البيضاء", imagePath: "generated_images/sambousa_cheese.png" },
+  { name: "ششبرك لحمة", description: "عجينة محشوة باللحم في صلصة اللبن الكريمية", imagePath: "generated_images/shishbarak.png" },
+  { name: "ورق عنب بلحمة", description: "ورق عنب محشو بالأرز واللحم", imagePath: "generated_images/grape_leaves_meat.png" },
+  { name: "ورق عنب بزيت", description: "ورق عنب نباتي محشو بالأرز والأعشاب بزيت الزيتون", imagePath: "generated_images/grape_leaves_oil.png" },
+];
+
+async function uploadImageToImageKit(localPath: string, fileName: string): Promise<string> {
+  const privateKey = process.env.IMAGEKIT_PRIVATE_KEY;
+  const publicKey = process.env.IMAGEKIT_PUBLIC_KEY;
+  const urlEndpoint = process.env.IMAGEKIT_URL_ENDPOINT;
+
+  if (!privateKey || !publicKey || !urlEndpoint) {
+    throw new Error("ImageKit not configured");
+  }
+
+  const imagekit = new ImageKit({
+    publicKey,
+    privateKey,
+    urlEndpoint,
+  });
+
+  const fileBuffer = fs.readFileSync(localPath);
+  const base64File = fileBuffer.toString("base64");
+  
+  const response = await imagekit.upload({
+    file: base64File,
+    fileName: fileName,
+    folder: "/products",
+  });
+  
+  return response.url;
+}
+
+export async function seedProducts() {
+  console.log("Starting product seeding...");
+  
+  const existingCategories = await storage.getCategories();
+  let categoryId: number;
+  
+  if (existingCategories.length === 0) {
+    console.log("Creating appetizers category...");
+    const categoryImagePath = "generated_images/sambousa_meat.png";
+    const categoryImageUrl = await uploadImageToImageKit(categoryImagePath, "appetizers-category.png");
+    
+    const newCategory = await storage.createCategory({
+      name: "مقبلات",
+      slug: "appetizers",
+      image: categoryImageUrl,
+    });
+    
+    categoryId = newCategory.id;
+    console.log(`Created category: ${newCategory.name} (ID: ${categoryId})`);
+  } else {
+    categoryId = existingCategories[0].id;
+    console.log(`Using existing category ID: ${categoryId}`);
+  }
+  
+  console.log("Uploading images and creating products...");
+  const results: any[] = [];
+  
+  for (const product of productsList) {
+    try {
+      console.log(`Processing: ${product.name}`);
+      
+      const fileName = path.basename(product.imagePath, ".png") + "-" + Date.now() + ".png";
+      const imageUrl = await uploadImageToImageKit(product.imagePath, fileName);
+      
+      const newProduct = await storage.createProduct({
+        categoryId: categoryId,
+        name: product.name,
+        description: product.description,
+        price: 100,
+        unitType: "حبة",
+        image: imageUrl,
+        isPopular: false,
+      });
+      
+      console.log(`Created product: ${newProduct.name} (ID: ${newProduct.id})`);
+      results.push(newProduct);
+    } catch (error) {
+      console.error(`Failed to create product ${product.name}:`, error);
+    }
+  }
+  
+  console.log("Seeding completed!");
+  return results;
 }
