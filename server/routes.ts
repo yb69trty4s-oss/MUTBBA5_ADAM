@@ -145,10 +145,14 @@ export async function registerRoutes(
         urlEndpoint,
       });
 
+      console.log("Fetching files from ImageKit...");
       const files = await imagekit.listFiles({
-        path: "/",
-        fileType: "all",
+        // Remove path constraint to see all files
       });
+      console.log(`ImageKit returned ${files.length} files`);
+      if (files.length > 0) {
+        console.log("First file sample:", JSON.stringify(files[0], null, 2));
+      }
 
       const newProducts: any[] = [];
       
@@ -184,10 +188,27 @@ export async function registerRoutes(
 
           const productName = file.name.replace(/\.[^/.]+$/, "").replace(/[-_]/g, " ");
           
+          // Arabic translation mapping
+          const arabicNames: { [key: string]: string } = {
+            "kibbeh fried": "كبة مقلية",
+            "kibbeh grilled": "كبة مشوية",
+            "raqayeq cheese": "رقائق جبنة",
+            "raqayeq cheese sausage": "رقائق جبنة وسجق",
+            "sambousa meat": "سمبوسك لحمة",
+            "sambousa cheese": "سمبوسك جبنة",
+            "shishbarak": "ششبرك",
+            "grape leaves meat": "ورق عنب بلحمة",
+            "grape leaves oil": "ورق عنب بزيت",
+            "appetizers category": "مقبلات",
+          };
+
+          let arabicName = productName.split(/\s\d+/)[0].trim(); // Remove timestamps and random IDs
+          arabicName = arabicNames[arabicName.toLowerCase()] || arabicName;
+
           const newProduct = await storage.createProduct({
             categoryId: defaultCategoryId,
-            name: productName,
-            description: `منتج ${productName}`,
+            name: arabicName,
+            description: `منتج ${arabicName}`,
             price: 100,
             unitType: "حبة",
             image: fileUrl,
