@@ -630,10 +630,15 @@ export default function Admin() {
                       className="h-16 w-16 object-cover rounded-md flex-shrink-0"
                     />
                     <div className="flex-1 min-w-0">
-                      <p className="font-medium truncate">{product.name}</p>
-                      
                       {editingProductId === product.id ? (
-                        <div className="mt-2 space-y-2">
+                        <div className="space-y-2">
+                          <Input
+                            value={editName}
+                            onChange={(e) => setEditName(e.target.value)}
+                            className="h-8 w-full"
+                            placeholder="اسم المنتج"
+                            data-testid={`input-edit-name-${product.id}`}
+                          />
                           <div className="flex gap-2 items-center">
                             <Input
                               type="number"
@@ -645,7 +650,7 @@ export default function Admin() {
                               data-testid={`input-edit-price-${product.id}`}
                             />
                             <Select value={editUnitType} onValueChange={setEditUnitType}>
-                              <SelectTrigger className="h-8 w-20" data-testid={`select-edit-unit-${product.id}`}>
+                              <SelectTrigger className="h-8 w-24" data-testid={`select-edit-unit-${product.id}`}>
                                 <SelectValue />
                               </SelectTrigger>
                               <SelectContent>
@@ -660,9 +665,9 @@ export default function Admin() {
                           <div className="flex gap-1">
                             <Button
                               size="sm"
-                              onClick={savePrice}
+                              onClick={saveProduct}
                               disabled={updateProductPrice.isPending}
-                              data-testid={`button-save-price-${product.id}`}
+                              data-testid={`button-save-product-edit-${product.id}`}
                             >
                               {updateProductPrice.isPending ? (
                                 <Loader2 className="h-3 w-3 animate-spin" />
@@ -675,6 +680,7 @@ export default function Admin() {
                               variant="ghost"
                               onClick={() => {
                                 setEditingProductId(null);
+                                setEditName("");
                                 setEditPrice("");
                                 setEditUnitType("");
                               }}
@@ -685,36 +691,39 @@ export default function Admin() {
                           </div>
                         </div>
                       ) : (
-                        <div className="flex items-center justify-between mt-1">
-                          <p className="text-sm text-muted-foreground">
-                            {(product.price / 100).toFixed(2)} $ / {product.unitType || "حبة"}
-                          </p>
-                          <div className="flex gap-1">
-                            <Button
-                              size="icon"
-                              variant="ghost"
-                              className="h-6 w-6"
-                              onClick={() => startEditing(product)}
-                              data-testid={`button-edit-price-${product.id}`}
-                            >
-                              <Pencil className="h-3 w-3" />
-                            </Button>
-                            <Button
-                              size="icon"
-                              variant="ghost"
-                              className="h-6 w-6 text-destructive"
-                              onClick={() => deleteProduct.mutate(product.id)}
-                              disabled={deleteProduct.isPending}
-                              data-testid={`button-delete-product-${product.id}`}
-                            >
-                              {deleteProduct.isPending ? (
-                                <Loader2 className="h-3 w-3 animate-spin" />
-                              ) : (
-                                <Trash2 className="h-3 w-3" />
-                              )}
-                            </Button>
+                        <>
+                          <p className="font-medium truncate">{product.name}</p>
+                          <div className="flex items-center justify-between mt-1">
+                            <p className="text-sm text-muted-foreground">
+                              {(product.price / 100).toFixed(2)} $ / {product.unitType || "حبة"}
+                            </p>
+                            <div className="flex gap-1">
+                              <Button
+                                size="icon"
+                                variant="ghost"
+                                className="h-6 w-6"
+                                onClick={() => startEditing(product)}
+                                data-testid={`button-edit-product-${product.id}`}
+                              >
+                                <Pencil className="h-3 w-3" />
+                              </Button>
+                              <Button
+                                size="icon"
+                                variant="ghost"
+                                className="h-6 w-6 text-destructive"
+                                onClick={() => deleteProduct.mutate(product.id)}
+                                disabled={deleteProduct.isPending}
+                                data-testid={`button-delete-product-${product.id}`}
+                              >
+                                {deleteProduct.isPending ? (
+                                  <Loader2 className="h-3 w-3 animate-spin" />
+                                ) : (
+                                  <Trash2 className="h-3 w-3" />
+                                )}
+                              </Button>
+                            </div>
                           </div>
-                        </div>
+                        </>
                       )}
                     </div>
                   </div>
