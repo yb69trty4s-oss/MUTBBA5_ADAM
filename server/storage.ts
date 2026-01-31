@@ -23,6 +23,7 @@ export interface IStorage {
   createDeliveryLocation(data: Omit<DeliveryLocation, 'id'>): Promise<DeliveryLocation>;
   
   updateProductPrice(id: number, price: number, unitType?: string): Promise<Product | undefined>;
+  deleteProduct(id: number): Promise<boolean>;
   deleteDeliveryLocation(id: number): Promise<boolean>;
   
   seedCategories(data: any[]): Promise<void>;
@@ -102,6 +103,10 @@ export class MemStorage implements IStorage {
     const updated = { ...product, price, unitType: unitType || product.unitType };
     this.products.set(id, updated);
     return updated;
+  }
+
+  async deleteProduct(id: number): Promise<boolean> {
+    return this.products.delete(id);
   }
 
   async deleteDeliveryLocation(id: number): Promise<boolean> {
@@ -197,6 +202,11 @@ export class DatabaseStorage implements IStorage {
     }
     const [product] = await db.update(products).set(updateData).where(eq(products.id, id)).returning();
     return product;
+  }
+
+  async deleteProduct(id: number): Promise<boolean> {
+    const result = await db.delete(products).where(eq(products.id, id)).returning();
+    return result.length > 0;
   }
 
   async deleteDeliveryLocation(id: number): Promise<boolean> {

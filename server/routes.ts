@@ -95,6 +95,19 @@ export async function registerRoutes(
   });
 
   // === Delete Routes ===
+  app.delete("/api/products/:id", async (req, res) => {
+    try {
+      const id = Number(req.params.id);
+      const deleted = await storage.deleteProduct(id);
+      if (!deleted) {
+        return res.status(404).json({ message: "Product not found" });
+      }
+      res.json({ success: true });
+    } catch (error) {
+      res.status(400).json({ message: "Failed to delete product" });
+    }
+  });
+
   app.delete("/api/delivery-locations/:id", async (req, res) => {
     try {
       const id = Number(req.params.id);

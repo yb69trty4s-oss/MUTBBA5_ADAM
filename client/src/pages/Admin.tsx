@@ -85,6 +85,19 @@ export default function Admin() {
     },
   });
 
+  const deleteProduct = useMutation({
+    mutationFn: async (id: number) => {
+      return apiRequest("DELETE", `/api/products/${id}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/products"] });
+      toast({ title: "تم حذف المنتج" });
+    },
+    onError: () => {
+      toast({ title: "فشل في حذف المنتج", variant: "destructive" });
+    },
+  });
+
   const createDeliveryLocation = useMutation({
     mutationFn: async (data: { name: string; price: number; image: string }) => {
       return apiRequest("POST", "/api/delivery-locations", data);
@@ -633,15 +646,31 @@ export default function Admin() {
                           <p className="text-sm text-muted-foreground">
                             {(product.price / 100).toFixed(2)} د.أ / {product.unitType || "حبة"}
                           </p>
-                          <Button
-                            size="icon"
-                            variant="ghost"
-                            className="h-6 w-6"
-                            onClick={() => startEditing(product)}
-                            data-testid={`button-edit-price-${product.id}`}
-                          >
-                            <Pencil className="h-3 w-3" />
-                          </Button>
+                          <div className="flex gap-1">
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              className="h-6 w-6"
+                              onClick={() => startEditing(product)}
+                              data-testid={`button-edit-price-${product.id}`}
+                            >
+                              <Pencil className="h-3 w-3" />
+                            </Button>
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              className="h-6 w-6 text-destructive"
+                              onClick={() => deleteProduct.mutate(product.id)}
+                              disabled={deleteProduct.isPending}
+                              data-testid={`button-delete-product-${product.id}`}
+                            >
+                              {deleteProduct.isPending ? (
+                                <Loader2 className="h-3 w-3 animate-spin" />
+                              ) : (
+                                <Trash2 className="h-3 w-3" />
+                              )}
+                            </Button>
+                          </div>
                         </div>
                       )}
                     </div>
