@@ -22,7 +22,7 @@ export interface IStorage {
   createCategory(data: Omit<Category, 'id'>): Promise<Category>;
   createDeliveryLocation(data: Omit<DeliveryLocation, 'id'>): Promise<DeliveryLocation>;
   
-  updateProductPrice(id: number, price: number, unitType?: string): Promise<Product | undefined>;
+  updateProductPrice(id: number, price?: number, unitType?: string, name?: string): Promise<Product | undefined>;
   deleteProduct(id: number): Promise<boolean>;
   deleteDeliveryLocation(id: number): Promise<boolean>;
   
@@ -97,10 +97,15 @@ export class MemStorage implements IStorage {
     return location;
   }
 
-  async updateProductPrice(id: number, price: number, unitType?: string): Promise<Product | undefined> {
+  async updateProductPrice(id: number, price?: number, unitType?: string, name?: string): Promise<Product | undefined> {
     const product = this.products.get(id);
     if (!product) return undefined;
-    const updated = { ...product, price, unitType: unitType || product.unitType };
+    const updated = { 
+      ...product, 
+      price: price !== undefined ? price : product.price, 
+      unitType: unitType || product.unitType,
+      name: name || product.name
+    };
     this.products.set(id, updated);
     return updated;
   }
@@ -195,11 +200,12 @@ export class DatabaseStorage implements IStorage {
     return location;
   }
 
-  async updateProductPrice(id: number, price: number, unitType?: string): Promise<Product | undefined> {
-    const updateData: { price: number; unitType?: string } = { price };
-    if (unitType) {
-      updateData.unitType = unitType;
-    }
+  async updateProductPrice(id: number, price?: number, unitType?: string, name?: string): Promise<Product | undefined> {
+    const updateData: { price?: number; unitType?: string; name?: string } = {};
+    if (price !== undefined) updateData.price = price;
+    if (unitType) updateData.unitType = unitType;
+    if (name) updateData.name = name;
+    
     const [product] = await db.update(products).set(updateData).where(eq(products.id, id)).returning();
     return product;
   }

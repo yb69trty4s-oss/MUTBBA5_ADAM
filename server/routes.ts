@@ -84,7 +84,7 @@ export async function registerRoutes(
     try {
       const id = Number(req.params.id);
       const data = updateProductPriceSchema.parse(req.body);
-      const product = await storage.updateProductPrice(id, data.price, data.unitType);
+      const product = await storage.updateProductPrice(id, data.price, data.unitType, data.name);
       if (!product) {
         return res.status(404).json({ message: "Product not found" });
       }

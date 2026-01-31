@@ -23,6 +23,7 @@ export default function Admin() {
   const [uploading, setUploading] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [editingProductId, setEditingProductId] = useState<number | null>(null);
+  const [editName, setEditName] = useState("");
   const [editPrice, setEditPrice] = useState("");
   const [editUnitType, setEditUnitType] = useState("");
   
@@ -70,18 +71,19 @@ export default function Admin() {
   });
 
   const updateProductPrice = useMutation({
-    mutationFn: async ({ id, price, unitType }: { id: number; price: number; unitType: string }) => {
-      return apiRequest("PATCH", `/api/products/${id}/price`, { price, unitType });
+    mutationFn: async ({ id, price, unitType, name }: { id: number; price: number; unitType: string; name: string }) => {
+      return apiRequest("PATCH", `/api/products/${id}/price`, { price, unitType, name });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/products"] });
       setEditingProductId(null);
+      setEditName("");
       setEditPrice("");
       setEditUnitType("");
-      toast({ title: "تم تحديث السعر" });
+      toast({ title: "تم تحديث المنتج" });
     },
     onError: () => {
-      toast({ title: "فشل في تحديث السعر", variant: "destructive" });
+      toast({ title: "فشل في تحديث المنتج", variant: "destructive" });
     },
   });
 
@@ -220,14 +222,15 @@ export default function Admin() {
 
   const startEditing = (product: Product) => {
     setEditingProductId(product.id);
+    setEditName(product.name);
     setEditPrice((product.price / 100).toString());
     setEditUnitType(product.unitType || "حبة");
   };
 
-  const savePrice = () => {
-    if (editingProductId !== null && editPrice) {
+  const saveProduct = () => {
+    if (editingProductId !== null && editPrice && editName) {
       const price = parseFloat(editPrice) * 100;
-      updateProductPrice.mutate({ id: editingProductId, price, unitType: editUnitType });
+      updateProductPrice.mutate({ id: editingProductId, price, unitType: editUnitType, name: editName });
     }
   };
 

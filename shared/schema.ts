@@ -43,7 +43,8 @@ export const insertProductSchema = createInsertSchema(products).omit({ id: true 
 export const insertDeliveryLocationSchema = createInsertSchema(deliveryLocations).omit({ id: true });
 
 export const updateProductPriceSchema = z.object({
-  price: z.number().min(0),
+  name: z.string().optional(),
+  price: z.number().min(0).optional(),
   unitType: z.enum(unitTypes).optional(),
 });
 
