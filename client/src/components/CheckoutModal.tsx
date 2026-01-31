@@ -30,12 +30,12 @@ export function CheckoutModal() {
       message += `- ${item.product.name}: ${item.quantity} ${item.product.unitType || "حبة"}\n`;
     });
     
-    message += `\nالمجموع: ${getTotalPrice().toLocaleString()} $`;
+    message += `\nالمجموع: ${(getTotalPrice() / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} $`;
     
     if (deliveryLocation) {
       message += `\n\nالتوصيل إلى: ${deliveryLocation.name}`;
-      message += `\nسعر التوصيل: ${deliveryLocation.price.toLocaleString()} $`;
-      message += `\nالإجمالي مع التوصيل: ${(getTotalPrice() + deliveryLocation.price).toLocaleString()} $`;
+      message += `\nسعر التوصيل: ${(deliveryLocation.price / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} $`;
+      message += `\nالإجمالي مع التوصيل: ${((getTotalPrice() + deliveryLocation.price) / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} $`;
     } else {
       message += "\n\nاستلام من المحل";
     }
@@ -164,7 +164,7 @@ export function CheckoutModal() {
                         <div className="flex-1">
                           <p className="font-bold text-lg">{location.name}</p>
                           <p className="text-primary font-medium">
-                            {location.price.toLocaleString()} $
+                            {(location.price / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} $
                           </p>
                         </div>
                         <ArrowLeft className="w-5 h-5 text-muted-foreground rotate-180" />
@@ -179,7 +179,7 @@ export function CheckoutModal() {
               <div className="flex justify-between items-center">
                 <span className="text-muted-foreground">مجموع الطلب:</span>
                 <span className="text-xl font-bold text-primary">
-                  {getTotalPrice().toLocaleString()} $
+                  {(getTotalPrice() / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} $
                 </span>
               </div>
             </div>
