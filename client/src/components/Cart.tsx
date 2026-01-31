@@ -81,7 +81,10 @@ export function Cart() {
                           size="icon"
                           variant="outline"
                           className="h-7 w-7"
-                          onClick={() => updateQuantity(item.product.id, item.quantity - 0.5)}
+                          onClick={() => {
+                            const step = item.product.unitType === "كيلو" ? 0.5 : 1;
+                            updateQuantity(item.product.id, item.quantity - step);
+                          }}
                           data-testid={`button-decrease-${item.product.id}`}
                         >
                           <Minus className="w-3 h-3" />
@@ -93,7 +96,10 @@ export function Cart() {
                           size="icon"
                           variant="outline"
                           className="h-7 w-7"
-                          onClick={() => updateQuantity(item.product.id, item.quantity + 0.5)}
+                          onClick={() => {
+                            const step = item.product.unitType === "كيلو" ? 0.5 : 1;
+                            updateQuantity(item.product.id, item.quantity + step);
+                          }}
                           data-testid={`button-increase-${item.product.id}`}
                         >
                           <Plus className="w-3 h-3" />

@@ -195,6 +195,10 @@ export async function registerRoutes(
         "shishbarak": "ششبرك",
         "grape leaves meat": "ورق عنب بلحمة",
         "grape leaves oil": "ورق عنب بزيت",
+        "kabba": "كبة",
+        "waraq enab": "ورق عنب",
+        "sambousa jebna": "سمبوسة جبنة",
+        "waraq enab lahme": "ورق عنب مع لحمة",
       };
 
       // Arabic translation mapping for categories
@@ -221,9 +225,11 @@ export async function registerRoutes(
         const fileUrl = file.url as string;
         const filePath = (file as any).filePath || "";
         
+        // Use a more robust check for existing synced images
         const existingSynced = await storage.getSyncedImageByFileId(fileId);
         
         if (!existingSynced) {
+          // Immediately mark as synced to prevent concurrent syncs from adding the same file
           await storage.createSyncedImage({
             fileId: fileId,
             fileName: file.name,

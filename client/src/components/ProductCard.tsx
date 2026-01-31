@@ -82,7 +82,10 @@ export function ProductCard({ product }: ProductCardProps) {
                   size="icon"
                   variant="outline"
                   className="h-8 w-8"
-                  onClick={() => setQuantity(Math.max(0.5, quantity - 0.5))}
+                  onClick={() => {
+                    const step = product.unitType === "كيلو" ? 0.5 : 1;
+                    setQuantity(Math.max(step, quantity - step));
+                  }}
                   data-testid={`button-decrease-qty-${product.id}`}
                 >
                   <Minus className="w-3 h-3" />
@@ -92,7 +95,10 @@ export function ProductCard({ product }: ProductCardProps) {
                   size="icon"
                   variant="outline"
                   className="h-8 w-8"
-                  onClick={() => setQuantity(quantity + 0.5)}
+                  onClick={() => {
+                    const step = product.unitType === "كيلو" ? 0.5 : 1;
+                    setQuantity(quantity + step);
+                  }}
                   data-testid={`button-increase-qty-${product.id}`}
                 >
                   <Plus className="w-3 h-3" />
