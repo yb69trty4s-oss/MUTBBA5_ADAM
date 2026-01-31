@@ -9,7 +9,7 @@ export const categories = pgTable("categories", {
   image: text("image").notNull(),
 });
 
-export const unitTypes = ["حبة", "دزينة و حبة", "كيلو"] as const;
+export const unitTypes = ["حبة", "دزينة", "كيلو"] as const;
 export type UnitType = typeof unitTypes[number];
 
 export const products = pgTable("products", {
