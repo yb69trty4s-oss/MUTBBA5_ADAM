@@ -277,8 +277,23 @@ export async function registerRoutes(
             newLocations.push(newLocation);
             console.log(`Created delivery location: ${arabicName}`);
             
+          } else if (filePath.toLowerCase().includes("/منتجات/") || filePath.toLowerCase().includes("/products/")) {
+            // Create product (includes /منتجات/ folder specifically)
+            const arabicName = arabicProductNames[cleanName.toLowerCase()] || cleanName;
+
+            const newProduct = await storage.createProduct({
+              categoryId: defaultCategoryId,
+              name: arabicName,
+              description: `منتج ${arabicName}`,
+              price: 100,
+              unitType: "حبة",
+              image: fileUrl,
+              isPopular: false,
+            });
+            newProducts.push(newProduct);
+            console.log(`Created product from folder: ${arabicName}`);
           } else {
-            // Default: Create product (includes /products/ folder and root)
+            // Default: Create product (includes root and other folders)
             const arabicName = arabicProductNames[cleanName.toLowerCase()] || cleanName;
 
             const newProduct = await storage.createProduct({
