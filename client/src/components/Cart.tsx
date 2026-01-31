@@ -74,7 +74,7 @@ export function Cart() {
                     <div className="flex-1 min-w-0">
                       <p className="font-medium truncate">{item.product.name}</p>
                       <p className="text-sm text-muted-foreground">
-                        {(item.product.price / 100).toFixed(2)} د.أ / {item.product.unitType || "حبة"}
+                        {(item.product.price / 100).toFixed(2)} $ / {item.product.unitType || "حبة"}
                       </p>
                       <div className="flex items-center gap-2 mt-2">
                         <Button
@@ -110,7 +110,7 @@ export function Cart() {
                       </div>
                     </div>
                     <div className="text-left font-bold text-primary">
-                      {((item.product.price * item.quantity) / 100).toFixed(2)} د.أ
+                      {((item.product.price * item.quantity) / 100).toFixed(2)} $
                     </div>
                   </div>
                 ))
@@ -122,7 +122,7 @@ export function Cart() {
                 <div className="flex justify-between items-center mb-4">
                   <span className="text-lg font-bold">المجموع:</span>
                   <span className="text-2xl font-bold text-primary">
-                    {(getTotalPrice() / 100).toFixed(2)} د.أ
+                    {(getTotalPrice() / 100).toFixed(2)} $
                   </span>
                 </div>
                 <Button

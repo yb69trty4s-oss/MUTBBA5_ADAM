@@ -295,7 +295,7 @@ export default function Admin() {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label>سعر التوصيل (د.أ)</Label>
+                      <Label>سعر التوصيل ($)</Label>
                       <Input
                         type="number"
                         step="0.01"
@@ -354,7 +354,7 @@ export default function Admin() {
                     <div className="flex-1 min-w-0">
                       <p className="font-medium truncate">{location.name}</p>
                       <p className="text-sm text-primary font-bold">
-                        {(location.price / 100).toFixed(2)} د.أ
+                        {(location.price / 100).toFixed(2)} $
                       </p>
                     </div>
                     <Button
@@ -644,7 +644,7 @@ export default function Admin() {
                       ) : (
                         <div className="flex items-center justify-between mt-1">
                           <p className="text-sm text-muted-foreground">
-                            {(product.price / 100).toFixed(2)} د.أ / {product.unitType || "حبة"}
+                            {(product.price / 100).toFixed(2)} $ / {product.unitType || "حبة"}
                           </p>
                           <div className="flex gap-1">
                             <Button
