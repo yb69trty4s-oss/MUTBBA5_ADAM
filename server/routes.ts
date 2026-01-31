@@ -224,6 +224,10 @@ export async function registerRoutes(
         const fileId = file.fileId as string;
         const fileUrl = file.url as string;
         const filePath = (file as any).filePath || "";
+        const fileName = file.name;
+        
+        // Skip if it's a directory (ImageKit markers)
+        if (fileName.endsWith('/')) continue;
         
         // Use a more robust check for existing synced images
         const existingSynced = await storage.getSyncedImageByFileId(fileId);
@@ -232,10 +236,17 @@ export async function registerRoutes(
           // Immediately mark as synced to prevent concurrent syncs from adding the same file
           await storage.createSyncedImage({
             fileId: fileId,
-            fileName: file.name,
+            fileName: fileName,
             url: fileUrl,
             syncedAt: new Date().toISOString(),
           });
+
+          // Also check by URL to be extra safe against duplicates with different IDs
+          const allProducts = await storage.getProducts();
+          if (allProducts.some(p => p.image === fileUrl)) {
+            console.log(`Product with URL ${fileUrl} already exists, skipping...`);
+            continue;
+          }
 
           const rawName = file.name.replace(/\.[^/.]+$/, "").replace(/[-_]/g, " ");
           const cleanName = rawName.split(/\s\d+/)[0].trim();
