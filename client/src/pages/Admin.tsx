@@ -231,13 +231,53 @@ export default function Admin() {
     }
   };
 
+  const [isSyncing, setIsSyncing] = useState(false);
+
+  const handleSync = async () => {
+    setIsSyncing(true);
+    try {
+      const res = await apiRequest("POST", "/api/imagekit/sync");
+      const result = await res.json();
+      if (result.success) {
+        queryClient.invalidateQueries({ queryKey: ["/api/products"] });
+        queryClient.invalidateQueries({ queryKey: ["/api/categories"] });
+        queryClient.invalidateQueries({ queryKey: ["/api/delivery-locations"] });
+        toast({ 
+          title: "تمت المزامنة بنجاح", 
+          description: `تمت إضافة ${result.newProductsAdded} منتجات جديدة` 
+        });
+      }
+    } catch (error) {
+      toast({ title: "فشل المزامنة", variant: "destructive" });
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background p-6" dir="rtl">
       <div className="max-w-6xl mx-auto">
         <div className="flex items-center justify-between gap-4 mb-8">
-          <h1 className="text-3xl font-bold" data-testid="text-admin-title">
-            لوحة التحكم
-          </h1>
+          <div className="flex items-center gap-4">
+            <h1 className="text-3xl font-bold" data-testid="text-admin-title">
+              لوحة التحكم
+            </h1>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleSync}
+              disabled={isSyncing}
+              data-testid="button-sync-imagekit"
+              className="gap-2"
+            >
+              {isSyncing ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Upload className="h-4 w-4" />
+              )}
+              مزامنة الصور
+            </Button>
+          </div>
           <Button
             variant="outline"
             onClick={() => setLocation("/")}
