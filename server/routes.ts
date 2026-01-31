@@ -285,7 +285,7 @@ export async function registerRoutes(
               categoryId: defaultCategoryId,
               name: arabicName,
               description: `منتج ${arabicName}`,
-              price: 100,
+              price: 250, // Default price (2.50$)
               unitType: "حبة",
               image: fileUrl,
               isPopular: false,
@@ -300,7 +300,7 @@ export async function registerRoutes(
               categoryId: defaultCategoryId,
               name: arabicName,
               description: `منتج ${arabicName}`,
-              price: 100,
+              price: 250, // Default price (2.50$)
               unitType: "حبة",
               image: fileUrl,
               isPopular: false,
