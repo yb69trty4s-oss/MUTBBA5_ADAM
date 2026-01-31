@@ -159,15 +159,15 @@ export async function registerRoutes(
       });
 
       console.log("Fetching files from ImageKit...");
-      const files = await imagekit.listFiles({
-        // Remove path constraint to see all files
-      });
+      const files = await imagekit.listFiles({});
       console.log(`ImageKit returned ${files.length} files`);
       if (files.length > 0) {
         console.log("First file sample:", JSON.stringify(files[0], null, 2));
       }
 
       const newProducts: any[] = [];
+      const newCategories: any[] = [];
+      const newLocations: any[] = [];
       
       let categories = await storage.getCategories();
       let defaultCategoryId: number;
@@ -179,15 +179,47 @@ export async function registerRoutes(
           image: urlEndpoint + "/default-category.jpg",
         });
         defaultCategoryId = newCategory.id;
+        categories = [newCategory];
       } else {
         defaultCategoryId = categories[0].id;
       }
+
+      // Arabic translation mapping for products
+      const arabicProductNames: { [key: string]: string } = {
+        "kibbeh fried": "كبة مقلية",
+        "kibbeh grilled": "كبة مشوية",
+        "raqayeq cheese": "رقائق جبنة",
+        "raqayeq cheese sausage": "رقائق جبنة وسجق",
+        "sambousa meat": "سمبوسك لحمة",
+        "sambousa cheese": "سمبوسك جبنة",
+        "shishbarak": "ششبرك",
+        "grape leaves meat": "ورق عنب بلحمة",
+        "grape leaves oil": "ورق عنب بزيت",
+      };
+
+      // Arabic translation mapping for categories
+      const arabicCategoryNames: { [key: string]: string } = {
+        "appetizers": "مقبلات",
+        "main dishes": "أطباق رئيسية",
+        "desserts": "حلويات",
+        "drinks": "مشروبات",
+        "salads": "سلطات",
+      };
+
+      // Arabic translation mapping for delivery locations
+      const arabicLocationNames: { [key: string]: string } = {
+        "amman": "عمان",
+        "zarqa": "الزرقاء",
+        "irbid": "إربد",
+        "aqaba": "العقبة",
+      };
 
       for (const file of files) {
         if (!('fileId' in file) || !('url' in file)) continue;
         
         const fileId = file.fileId as string;
         const fileUrl = file.url as string;
+        const filePath = (file as any).filePath || "";
         
         const existingSynced = await storage.getSyncedImageByFileId(fileId);
         
@@ -199,36 +231,51 @@ export async function registerRoutes(
             syncedAt: new Date().toISOString(),
           });
 
-          const productName = file.name.replace(/\.[^/.]+$/, "").replace(/[-_]/g, " ");
-          
-          // Arabic translation mapping
-          const arabicNames: { [key: string]: string } = {
-            "kibbeh fried": "كبة مقلية",
-            "kibbeh grilled": "كبة مشوية",
-            "raqayeq cheese": "رقائق جبنة",
-            "raqayeq cheese sausage": "رقائق جبنة وسجق",
-            "sambousa meat": "سمبوسك لحمة",
-            "sambousa cheese": "سمبوسك جبنة",
-            "shishbarak": "ششبرك",
-            "grape leaves meat": "ورق عنب بلحمة",
-            "grape leaves oil": "ورق عنب بزيت",
-            "appetizers category": "مقبلات",
-          };
+          const rawName = file.name.replace(/\.[^/.]+$/, "").replace(/[-_]/g, " ");
+          const cleanName = rawName.split(/\s\d+/)[0].trim();
 
-          let arabicName = productName.split(/\s\d+/)[0].trim(); // Remove timestamps and random IDs
-          arabicName = arabicNames[arabicName.toLowerCase()] || arabicName;
+          // Determine type based on folder path
+          if (filePath.toLowerCase().includes("/categories/")) {
+            // Create category
+            const arabicName = arabicCategoryNames[cleanName.toLowerCase()] || cleanName;
+            const slug = cleanName.toLowerCase().replace(/\s+/g, "-");
+            
+            const newCategory = await storage.createCategory({
+              name: arabicName,
+              slug: slug,
+              image: fileUrl,
+            });
+            newCategories.push(newCategory);
+            console.log(`Created category: ${arabicName}`);
+            
+          } else if (filePath.toLowerCase().includes("/locations/") || filePath.toLowerCase().includes("/delivery/")) {
+            // Create delivery location
+            const arabicName = arabicLocationNames[cleanName.toLowerCase()] || cleanName;
+            
+            const newLocation = await storage.createDeliveryLocation({
+              name: arabicName,
+              price: 200, // Default delivery price (2.00$)
+              image: fileUrl,
+            });
+            newLocations.push(newLocation);
+            console.log(`Created delivery location: ${arabicName}`);
+            
+          } else {
+            // Default: Create product (includes /products/ folder and root)
+            const arabicName = arabicProductNames[cleanName.toLowerCase()] || cleanName;
 
-          const newProduct = await storage.createProduct({
-            categoryId: defaultCategoryId,
-            name: arabicName,
-            description: `منتج ${arabicName}`,
-            price: 100,
-            unitType: "حبة",
-            image: fileUrl,
-            isPopular: false,
-          });
-
-          newProducts.push(newProduct);
+            const newProduct = await storage.createProduct({
+              categoryId: defaultCategoryId,
+              name: arabicName,
+              description: `منتج ${arabicName}`,
+              price: 100,
+              unitType: "حبة",
+              image: fileUrl,
+              isPopular: false,
+            });
+            newProducts.push(newProduct);
+            console.log(`Created product: ${arabicName}`);
+          }
         }
       }
 
@@ -236,7 +283,11 @@ export async function registerRoutes(
         success: true,
         totalFiles: files.length,
         newProductsAdded: newProducts.length,
+        newCategoriesAdded: newCategories.length,
+        newLocationsAdded: newLocations.length,
         products: newProducts,
+        categories: newCategories,
+        locations: newLocations,
       });
     } catch (error: any) {
       console.error("ImageKit sync error:", error);

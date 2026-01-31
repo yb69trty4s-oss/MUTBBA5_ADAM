@@ -8,7 +8,11 @@ interface SyncResponse {
   success: boolean;
   totalFiles: number;
   newProductsAdded: number;
+  newCategoriesAdded: number;
+  newLocationsAdded: number;
   products: unknown[];
+  categories: unknown[];
+  locations: unknown[];
 }
 
 export function useImageKitSync() {
@@ -26,8 +30,17 @@ export function useImageKitSync() {
         
         if (result.newProductsAdded > 0) {
           queryClient.invalidateQueries({ queryKey: ["/api/products"] });
-          queryClient.invalidateQueries({ queryKey: ["/api/categories"] });
           console.log(`Synced ${result.newProductsAdded} new products from ImageKit`);
+        }
+        
+        if (result.newCategoriesAdded > 0) {
+          queryClient.invalidateQueries({ queryKey: ["/api/categories"] });
+          console.log(`Synced ${result.newCategoriesAdded} new categories from ImageKit`);
+        }
+        
+        if (result.newLocationsAdded > 0) {
+          queryClient.invalidateQueries({ queryKey: ["/api/delivery-locations"] });
+          console.log(`Synced ${result.newLocationsAdded} new delivery locations from ImageKit`);
         }
       } catch (error) {
         console.error("ImageKit sync failed:", error);
