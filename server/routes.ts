@@ -199,6 +199,38 @@ export async function registerRoutes(
         "waraq enab": "ورق عنب",
         "sambousa jebna": "سمبوسة جبنة",
         "waraq enab lahme": "ورق عنب مع لحمة",
+        "shish barak": "شيش برك",
+        "sambousek jebna": "سمبوسه جبنة",
+        "sambousek lahme": "سمبوسه لحمة",
+        "waraq enab lahmeh": "ورق عنب بلحمة",
+        "waraq enab zeit": "ورق عنب بالزيت",
+      };
+
+      // Pricing and Unit mapping based on name
+      const getProductDetails = (name: string) => {
+        const lowerName = name.toLowerCase();
+        if (lowerName.includes("شيش برك") || lowerName.includes("shish barak")) {
+          return { price: 500, unitType: "50 حبة" };
+        }
+        if (lowerName.includes("ورق عنب") || lowerName.includes("waraq enab")) {
+          return { price: 3000, unitType: "كيلو" };
+        }
+        if (lowerName.includes("كبة مقلية") || lowerName.includes("kibbeh fried")) {
+          return { price: 600, unitType: "دزينة" };
+        }
+        if (lowerName.includes("رقائق جبنة و سجق") || lowerName.includes("raqayeq cheese sausage")) {
+          return { price: 500, unitType: "دزينة" };
+        }
+        if (lowerName.includes("رقائق جبنة") || lowerName.includes("raqayeq cheese")) {
+          return { price: 400, unitType: "دزينة" };
+        }
+        if (lowerName.includes("سمبوسه جبنة") || lowerName.includes("sambousa cheese") || lowerName.includes("sambousek jebna")) {
+          return { price: 400, unitType: "دزينة" };
+        }
+        if (lowerName.includes("سمبوسه لحمة") || lowerName.includes("sambousa meat") || lowerName.includes("sambousek lahme")) {
+          return { price: 400, unitType: "دزينة" };
+        }
+        return { price: 250, unitType: "حبة" }; // Default
       };
 
       // Arabic translation mapping for categories
@@ -280,33 +312,35 @@ export async function registerRoutes(
           } else if (filePath.toLowerCase().includes("/منتجات/") || filePath.toLowerCase().includes("/products/")) {
             // Create product (includes /منتجات/ folder specifically)
             const arabicName = arabicProductNames[cleanName.toLowerCase()] || cleanName;
+            const details = getProductDetails(arabicName);
 
             const newProduct = await storage.createProduct({
               categoryId: defaultCategoryId,
               name: arabicName,
               description: `منتج ${arabicName}`,
-              price: 250, // Default price (2.50$)
-              unitType: "حبة",
+              price: details.price,
+              unitType: details.unitType,
               image: fileUrl,
               isPopular: false,
             });
             newProducts.push(newProduct);
-            console.log(`Created product from folder: ${arabicName}`);
+            console.log(`Created product from folder: ${arabicName} with price ${details.price}`);
           } else {
             // Default: Create product (includes root and other folders)
             const arabicName = arabicProductNames[cleanName.toLowerCase()] || cleanName;
+            const details = getProductDetails(arabicName);
 
             const newProduct = await storage.createProduct({
               categoryId: defaultCategoryId,
               name: arabicName,
               description: `منتج ${arabicName}`,
-              price: 250, // Default price (2.50$)
-              unitType: "حبة",
+              price: details.price,
+              unitType: details.unitType,
               image: fileUrl,
               isPopular: false,
             });
             newProducts.push(newProduct);
-            console.log(`Created product: ${arabicName}`);
+            console.log(`Created product: ${arabicName} with price ${details.price}`);
           }
         }
       }
