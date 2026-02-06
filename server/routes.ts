@@ -209,8 +209,8 @@ export async function registerRoutes(
       // Pricing and Unit mapping based on name
       const getProductDetails = (name: string) => {
         const lowerName = name.toLowerCase();
-        if (lowerName.includes("شيش برك") || lowerName.includes("shish barak")) {
-          return { price: 500, unitType: "50 حبة" };
+        if (lowerName.includes("شيش برك") || lowerName.includes("shish barak") || lowerName.includes("شيشبرك")) {
+          return { price: 600, unitType: "50 حبة" };
         }
         if (lowerName.includes("ورق عنب") || lowerName.includes("waraq enab")) {
           return { price: 3000, unitType: "كيلو" };
