@@ -213,7 +213,7 @@ export async function registerRoutes(
           return { price: 600, unitType: "50 حبة" };
         }
         if (lowerName.includes("ورق عنب") || lowerName.includes("waraq enab")) {
-          return { price: 3000, unitType: "كيلو" };
+          return { price: 0, unitType: "كيلو" };
         }
         if (lowerName.includes("كبة مقلية") || lowerName.includes("kibbeh fried")) {
           return { price: 600, unitType: "دزينة" };
