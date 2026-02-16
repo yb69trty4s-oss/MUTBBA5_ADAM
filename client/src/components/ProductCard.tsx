@@ -54,8 +54,8 @@ export function ProductCard({ product }: ProductCardProps) {
         <div className="flex items-center justify-between mt-auto">
           <div className="flex flex-col">
             <span className="text-xs text-muted-foreground">السعر / {product.unitType || "حبة"}</span>
-            <span className="text-lg font-bold text-primary">
-              {product.price === 0 ? "حسب الوزن" : `${(product.price / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} $`}
+            <span className="text-lg font-bold text-primary min-h-[1.75rem] block">
+              {product.price > 0 && `${(product.price / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} $`}
             </span>
           </div>
           
