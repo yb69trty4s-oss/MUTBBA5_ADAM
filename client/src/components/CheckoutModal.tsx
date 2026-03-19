@@ -1,10 +1,10 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useQuery } from "@tanstack/react-query";
 import { useCart } from "@/context/CartContext";
 import { Button } from "@/components/ui/button";
-import { X, MapPin, Package, ArrowLeft, Loader2 } from "lucide-react";
+import { X, MapPin, Package, ArrowLeft } from "lucide-react";
 import type { DeliveryLocation } from "@shared/schema";
+import { useDeliveryLocations } from "@/hooks/use-shop-data";
 
 export function CheckoutModal() {
   const {
@@ -18,10 +18,7 @@ export function CheckoutModal() {
   const [step, setStep] = useState<"choice" | "delivery">("choice");
   const [selectedLocation, setSelectedLocation] = useState<DeliveryLocation | null>(null);
 
-  const { data: locations = [], isLoading } = useQuery<DeliveryLocation[]>({
-    queryKey: ["/api/delivery-locations"],
-    enabled: isCheckoutOpen,
-  });
+  const { data: locations = [] } = useDeliveryLocations();
 
   const buildWhatsAppMessage = (deliveryLocation?: DeliveryLocation) => {
     let message = "مرحباً كبة الدار، أود طلب:\n\n";
@@ -138,11 +135,7 @@ export function CheckoutModal() {
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {isLoading ? (
-                    <div className="flex justify-center py-8">
-                      <Loader2 className="w-8 h-8 animate-spin text-primary" />
-                    </div>
-                  ) : locations.length === 0 ? (
+                  {locations.length === 0 ? (
                     <div className="text-center py-8 text-muted-foreground">
                       <MapPin className="w-12 h-12 mx-auto mb-4 opacity-50" />
                       <p>لا توجد مناطق توصيل متاحة حالياً</p>

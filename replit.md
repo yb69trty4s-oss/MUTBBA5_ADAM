@@ -27,7 +27,10 @@ Preferred communication style: Simple, everyday language.
 - **Schema Validation**: Zod with drizzle-zod integration
 
 ### Data Storage
-- **Database**: PostgreSQL (via DATABASE_URL environment variable)
+- **Static Data**: Products, categories, and delivery locations are hardcoded in `client/src/data/static-data.ts`
+- The frontend reads directly from this file — no database or API calls needed for product display
+- The backend/database still exists but is not used by the main website
+- **Database**: PostgreSQL (via DATABASE_URL environment variable) — kept for admin/future use
 - **Schema**: Two main tables - categories and products
 - **Migrations**: Drizzle Kit for schema management (`npm run db:push`)
 

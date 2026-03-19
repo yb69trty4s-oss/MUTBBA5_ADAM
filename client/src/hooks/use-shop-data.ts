@@ -1,60 +1,56 @@
 import { useQuery } from "@tanstack/react-query";
-import { api, buildUrl } from "@shared/routes";
 import { type Category, type Product } from "@shared/schema";
+import { staticCategories, staticProducts, staticDeliveryLocations } from "@/data/static-data";
 
 // Categories
 export function useCategories() {
-  return useQuery({
-    queryKey: [api.categories.list.path],
-    queryFn: async () => {
-      const res = await fetch(api.categories.list.path);
-      if (!res.ok) throw new Error("Failed to fetch categories");
-      return api.categories.list.responses[200].parse(await res.json());
-    },
+  return useQuery<Category[]>({
+    queryKey: ["static-categories"],
+    queryFn: () => Promise.resolve(staticCategories),
+    staleTime: Infinity,
   });
 }
 
 export function useCategory(id: number) {
-  return useQuery({
-    queryKey: [api.categories.get.path, id],
-    queryFn: async () => {
-      const url = buildUrl(api.categories.get.path, { id });
-      const res = await fetch(url);
-      if (!res.ok) throw new Error("Failed to fetch category");
-      return api.categories.get.responses[200].parse(await res.json());
-    },
+  return useQuery<Category | undefined>({
+    queryKey: ["static-category", id],
+    queryFn: () => Promise.resolve(staticCategories.find((c) => c.id === id)),
     enabled: !!id,
+    staleTime: Infinity,
   });
 }
 
 // Products
 export function useProducts(filters?: { categoryId?: number; isPopular?: boolean }) {
-  return useQuery({
-    queryKey: [api.products.list.path, filters],
-    queryFn: async () => {
-      let url = api.products.list.path;
-      if (filters) {
-        const params = new URLSearchParams();
-        if (filters.categoryId) params.append("categoryId", String(filters.categoryId));
-        if (filters.isPopular) params.append("isPopular", "true");
-        url += `?${params.toString()}`;
+  return useQuery<Product[]>({
+    queryKey: ["static-products", filters],
+    queryFn: () => {
+      let result = staticProducts;
+      if (filters?.categoryId) {
+        result = result.filter((p) => p.categoryId === filters.categoryId);
       }
-      const res = await fetch(url);
-      if (!res.ok) throw new Error("Failed to fetch products");
-      return api.products.list.responses[200].parse(await res.json());
+      if (filters?.isPopular) {
+        result = result.filter((p) => p.isPopular);
+      }
+      return Promise.resolve(result);
     },
+    staleTime: Infinity,
   });
 }
 
 export function useProduct(id: number) {
-  return useQuery({
-    queryKey: [api.products.get.path, id],
-    queryFn: async () => {
-      const url = buildUrl(api.products.get.path, { id });
-      const res = await fetch(url);
-      if (!res.ok) throw new Error("Failed to fetch product");
-      return api.products.get.responses[200].parse(await res.json());
-    },
+  return useQuery<Product | undefined>({
+    queryKey: ["static-product", id],
+    queryFn: () => Promise.resolve(staticProducts.find((p) => p.id === id)),
     enabled: !!id,
+    staleTime: Infinity,
+  });
+}
+
+export function useDeliveryLocations() {
+  return useQuery({
+    queryKey: ["static-delivery-locations"],
+    queryFn: () => Promise.resolve(staticDeliveryLocations),
+    staleTime: Infinity,
   });
 }
